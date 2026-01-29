@@ -69,9 +69,13 @@ class HomeRepository implements HomeRepositoryInterface
         return $query->get()->map(function ($listing) {
             $images = json_decode($listing->image, true) ?? [];
 
-            return [
+            return [ 
                 'id'             => $listing->id,
-                'vendor'         => $listing->vendor?->name,
+                // 'vendor'         => $listing->vendor?->name,
+                'vendor_id'     => $listing->vendor?->id,
+                'vendor_name'   => $listing->vendor?->name,
+                'vendor_image'  => $listing->vendor?->image,
+                'vendor_phone'  => $listing->vendor?->phone,
                 'model'          => $listing->model?->name,
                 'price'          => $listing->price,
                 'distance'       => round($listing->distance, 1) . ' km',
@@ -154,7 +158,10 @@ class HomeRepository implements HomeRepositoryInterface
 
                 return [
                     'id'            => $product->id,
-                    'vendor'        => $product->vendor?->name, 
+                    'vendor_id'     => $product->vendor?->id,
+                    'vendor_name'   => $product->vendor?->name,
+                    'vendor_image'  => $product->vendor?->image,
+                    'vendor_phone'  => $product->vendor?->phone,
                     'model'         => $product->model?->name,
                     'price'         => $product->price,
                     'image'         => isset($images[0]) ? asset($images[0]) : null,

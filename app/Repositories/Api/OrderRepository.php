@@ -41,7 +41,9 @@ class OrderRepository implements OrderRepositoryInterface
             return [
                 'id' =>$order->id,
                 'order_id'        => '#' . $order->order_number,
+                'payment_method'  => $order->delivery_method,
                 'shop_name'       => $vendorName,
+                'vendor_address'  => optional($order->items->first()?->vendor)->location,
                 'total_price'     => $order->total_amount,
                 'total_products'  => $order->items->sum('quantity'),
                 'date'            => Carbon::parse($order->created_at)->format('F d, Y'),
@@ -53,11 +55,17 @@ class OrderRepository implements OrderRepositoryInterface
 
 public function getOrdersByVendorAndStatus(int $vendorId, string $status): Collection
     {
+        $data = [];
+        if($status == 'inprogress'){
+            $data = [$status,'shipped'];
+        }else{
+            $data = [$status];
+        }
         return Order::with(['items.vendor'])
         ->whereHas('items', function ($q) use ($vendorId) {
             $q->where('vendor_id', $vendorId);
         })
-        ->where('order_status', $status)
+        ->whereIn('order_status', $data)
         ->latest()
         ->get()
         ->map(function ($order) use ($vendorId) {
@@ -74,6 +82,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'id' => $order->id,
                 'order_item_id'  => $vendorItem->id,
                 'order_id'       => '#' . $order->order_number,
+                'payment_method' => $order->delivery_method,
                 'customer_id'    => $order->customer_id,
                 'shop_name'      => $vendorName,
                 'total_price'    => $vendorItems->sum(fn ($item) => $item->price * $item->quantity),

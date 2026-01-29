@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function __construct(HomeRepositoryInterface $homeRepository)
     {
         $this->homeRepository = $homeRepository;
-    }
+    }   
 
     // public function homeScreen(Request $request)
     // {
