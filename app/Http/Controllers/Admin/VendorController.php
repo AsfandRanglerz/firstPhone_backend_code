@@ -40,6 +40,12 @@ class VendorController extends Controller
         return view('admin.vendor.index', compact('users', 'sideMenuPermissions'));
     }
 
+     public function vendorpendingCounter()
+    {
+        $count = $this->vendorService->pendingVendorCount();
+        return response()->json(['count' => $count]);
+    }
+
     public function updateStatus(Request $request)
     {
         $request->validate([

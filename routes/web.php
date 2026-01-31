@@ -92,6 +92,7 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
     // ############ Vendors #################
     Route::controller(VendorController::class)->group(function () {
         Route::get('/vendor', 'index')->name('vendor.index')->middleware('check.permission:Vendors,view');
+        Route::get('/vendors/pending-counter', 'vendorpendingCounter')->name('vendor.pendingCounter');
         Route::get('/vendor-create', 'createView')->name('vendor.createview')->middleware('check.permission:Vendors,create');
         Route::post('/vendor-store', 'create')->name('vendor.create')->middleware('check.permission:Vendors,create');
         Route::get('/vendor-edit/{id}', 'edit')->name('vendor.edit')->middleware('check.permission:Vendors,edit');

@@ -111,6 +111,22 @@
         }
         updateCancelOrdersCounter();
         setInterval(updateCancelOrdersCounter, 10000);
+        
+        function vendorpendingCounter() {
+            $.ajax({
+                url: "{{ route('vendor.pendingCounter') }}",
+                type: 'GET',
+                success: function(response) {
+                    let count = response.count || 0;
+                    $('#vendorpendingCounter').text(count > 99 ? '99+' : count);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching vendor pending count:', error);
+                }
+            });
+        }
+        vendorpendingCounter();
+        setInterval(vendorpendingCounter, 10000);
     </script>
 
     <!-- ========== Core JS Libraries ========== -->

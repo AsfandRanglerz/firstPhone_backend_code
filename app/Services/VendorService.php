@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Vendor;
 use App\Models\VendorImage;
 use Illuminate\Support\Facades\File;
-use App\Repositories\Interfaces\VendorRepositoryInterface;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VendorRequestForRegister;
+use App\Repositories\Interfaces\VendorRepositoryInterface;
 
 class VendorService
 {
@@ -178,5 +179,10 @@ class VendorService
     public function updateStatus($id, $status, $reason = null)
     {
         return $this->vendorRepo->updateStatus($id, $status, $reason);
+    }
+
+    public function pendingVendorCount()
+    {
+        return Vendor::where('status', 'pending')->count();
     }
 }
