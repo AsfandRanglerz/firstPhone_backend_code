@@ -104,6 +104,11 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('sideMenuPermissions', $sideMenuPermissions);
         });
+
+        view()->composer('*', function ($view) {
+            $pendingVendorCount = Vendor::where('status', 'pending')->count();
+            $view->with([ 'pendingVendorCount' => $pendingVendorCount ]);
+        });
         SubAdmin::observe(ModelObserver::class);
         User::observe(ModelObserver::class);
         Role::observe(ModelObserver::class);

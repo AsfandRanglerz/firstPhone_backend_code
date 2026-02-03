@@ -303,27 +303,51 @@
                 type: "POST",
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 data: { id: userId, status: status, reason: reason },
-                success: function(res) {
-                    if (res.success) {
-                        toastr.success(res.message);
-                        $('#deactivationModal').modal('hide');
-                        $('#deactivationReason').val('');
+                 success: function(res) {
+                        if (!res.success) {
+                            toastr.error(res.message);
+                            return;
+                        }
 
-                        // Update button color + text instantly
+                        toastr.success(res.message);
+
                         const colorClasses = {
-                            'pending': 'btn-warning',
-                            'activated': 'btn-primary',
-                            'deactivated': 'btn-danger',
+                            pending: 'btn-warning',
+                            activated: 'btn-primary',
+                            deactivated: 'btn-danger',
                         };
 
-                        const btn = $(`#statusBtn-${userId}`);
-                        btn.text(status.charAt(0).toUpperCase() + status.slice(1))
-                        .removeClass()
-                        .addClass(`btn btn-sm dropdown-toggle ${colorClasses[status]}`);
-                    } else {
-                        toastr.error(res.message);
-                    }
-                },
+                        // 🔥 Find the button that triggered this action
+                        const btn = $(`.change-vendor-status[data-user-id="${userId}"]`)
+                            .closest('.dropdown')
+                            .find('.dropdown-toggle');
+
+                        // ✅ Update button text & color
+                        btn
+                            .text(status.charAt(0).toUpperCase() + status.slice(1))
+                            .removeClass('btn-warning btn-primary btn-danger')
+                            .addClass(colorClasses[status]);
+
+                        // ✅ Rebuild dropdown menu
+                        const dropdownMenu = btn.next('.dropdown-menu');
+                        dropdownMenu.empty();
+
+                        ['pending', 'activated', 'deactivated'].forEach(s => {
+                            if (s !== status) {
+                                dropdownMenu.append(`
+                                    <button type="button"
+                                        class="dropdown-item change-vendor-status"
+                                        data-user-id="${userId}"
+                                        data-new-status="${s}">
+                                        ${s.charAt(0).toUpperCase() + s.slice(1)}
+                                    </button>
+                                `);
+                            }
+                        });
+
+                        $('#deactivationModal').modal('hide');
+                        $('#deactivationReason').val('');
+                    },
                 error: function(xhr) {
                     console.error('Error:', xhr.status, xhr.responseText);
                     toastr.error('Error updating status');

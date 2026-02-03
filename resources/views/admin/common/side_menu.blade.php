@@ -43,6 +43,12 @@
                     <a href="#" class="menu-toggle nav-link has-dropdown">
                         <i data-feather="layout"></i> <!-- Icon for header section -->
                         <span>Users</span>
+                        <div class="badge {{ request()->is('admin.vendors*') ? 'bg-white text-dark' : 'bg-primary text-white' }}"
+                        style="display: inline-flex; justify-content: center; align-items: center; 
+                        min-width: 22px; height: 22px; border-radius: 50%; 
+                        text-align: center; font-size: 12px; margin-left: 5px; margin-right:20px; padding: 3px;">
+                        {{ $pendingVendorCount }}
+                        </div>
                     </a>
                     <ul
                         class="dropdown-menu {{ request()->is('admin/user*') || request()->is('admin/vendor*') ? 'show' : '' }}">
@@ -59,6 +65,13 @@
                     <a href="{{ url('admin/vendor') }}" class="nav-link">
                         <i data-feather="users"></i>
                         <span>Vendors</span>
+                         <div id="vendorpendingCounter"
+                        class="badge {{ request()->is('admin/vendor*') ? 'bg-white text-dark' : 'bg-primary text-white' }} rounded-circle"
+                        style="display: inline-flex; justify-content: center; align-items: center; 
+                            min-width: 22px; height: 22px; border-radius: 50%; 
+                            text-align: center; font-size: 12px; margin-left: 5px; padding: 3px;">
+                        0
+                    </div>
                     </a>
                 </li>
             @endif
