@@ -147,7 +147,7 @@ class AuthRepository implements AuthRepositoryInterface
         * --------------------------------------------------
         */
         if ($request['type'] === 'customer') 
-        {
+        { 
             // Handle profile image
             if ($request->hasFile('image')) {
                 $file = $request->file('image');

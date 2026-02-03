@@ -28,6 +28,12 @@ class OrderRepository implements OrderRepositoryInterface
 {
     public function getOrdersByCustomerAndStatus(int $customerId, string $status): Collection
 {
+    $data = [];
+        if($status == 'inprogress'){
+            $data = [$status,'shipped'];
+        }else{
+            $data = [$status];
+        }
     return Order::with(['items.vendor'])
         ->where('customer_id', $customerId)
         ->where('order_status', $status)
@@ -202,7 +208,8 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         $subtotal = $order->items->sum(fn($item) => $item->price * $item->quantity);
         // $shippingCharges = $order->shipping_charges ?? 0;
         // $total = $subtotal + $shippingCharges;
-        $total = $subtotal;
+        $total = $subtotal + ($order->shipping_charges ?? 0);
+        // $total = $subtotal;
         return [
             'order_id'       => $order->id,
             'customer'       => [
@@ -341,7 +348,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
 
         // $shippingCharges = 0;
         // $total = $subtotal + $shippingCharges;
-        $total = $subtotal;
+        $total  = $subtotal + ($order->shipping_charges ?? 0);
 
         return [
             'order_id'        => '#' . $order->order_number,
@@ -435,45 +442,93 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         return $createdReceipts;
     }
 
-    public function getReceiptById(int $deviceReceiptId): array
+    // public function getReceiptById(int $deviceReceiptId): array
+    // {
+    //     $deviceReceipt = DeviceReceipt::with([
+    //         'brand:id,name',
+    //         'model:id,name',
+    //         'order.customer',
+    //         'order.vendor',
+    //         'order.items.deviceReceipts.brand',
+    //         'order.items.deviceReceipts.model',
+    //         'order.items.vendor',
+    //     ])->findOrFail($deviceReceiptId);
+
+    //     $order = $deviceReceipt->order;
+
+    //     $vendorName = optional($order->items->first()->vendor)->name;
+    //     $deviceReceipt->created_at_formatted = $deviceReceipt->created_at->format('d-m-Y H:i:s');
+    //     $response = [
+    //         'order_number'    => $order->order_number,
+    //         'delivery_method' => $order->delivery_method,
+    //         'from_customer'   => $order->customer?->name,
+    //         'to_vendor'       => $vendorName,
+    //         'payment_id'     => $deviceReceipt->payment_id,
+    //         'total_products'  => $order->items->count(),
+    //         'products'        => [],
+    //         'created_at'      => $deviceReceipt->created_at_formatted,
+    //     ];
+
+    //     foreach ($order->items as $item) {
+    //         foreach ($item->deviceReceipts as $receipt) {
+    //             $response['products'][] = [
+    //                 'brand'    => $receipt->brand?->name ?? 'N/A',
+    //                 'model'    => $receipt->model?->name ?? 'N/A',
+    //                 'imei_one' => $receipt->imei_one,
+    //                 'imei_two' => $receipt->imei_two,
+    //                 'quantity' => $item->quantity,
+    //                 'price'    => $item->price,
+    //                 'total'    => $item->quantity * $item->price,
+    //             ];
+    //         }
+    //     }
+
+    //     $response['total_amount'] = collect($response['products'])->sum('total');
+
+    //     return $response;
+    // }
+
+    public function getReceiptById(int $orderId): array
     {
-        $deviceReceipt = DeviceReceipt::with([
+        $deviceReceipts = DeviceReceipt::with([
             'brand:id,name',
             'model:id,name',
             'order.customer',
             'order.vendor',
-            'order.items.deviceReceipts.brand',
-            'order.items.deviceReceipts.model',
             'order.items.vendor',
-        ])->findOrFail($deviceReceiptId);
+        ])->where('order_id', $orderId)->get();
 
-        $order = $deviceReceipt->order;
+        if ($deviceReceipts->isEmpty()) {
+            throw new \Exception('No receipt found for this order.');
+        }
+
+        $order = $deviceReceipts->first()->order;
 
         $vendorName = optional($order->items->first()->vendor)->name;
-        $deviceReceipt->created_at_formatted = $deviceReceipt->created_at->format('d-m-Y H:i:s');
+
         $response = [
             'order_number'    => $order->order_number,
             'delivery_method' => $order->delivery_method,
             'from_customer'   => $order->customer?->name,
             'to_vendor'       => $vendorName,
-            'payment_id'     => $deviceReceipt->payment_id,
-            'total_products'  => $order->items->count(),
+            'payment_id'      => $deviceReceipts->first()->payment_id,
+            'total_products'  => $deviceReceipts->count(),
             'products'        => [],
-            'created_at'      => $deviceReceipt->created_at_formatted,
+            'created_at'      => $deviceReceipts->first()->created_at->format('d-m-Y H:i:s'),
         ];
 
-        foreach ($order->items as $item) {
-            foreach ($item->deviceReceipts as $receipt) {
-                $response['products'][] = [
-                    'brand'    => $receipt->brand?->name ?? 'N/A',
-                    'model'    => $receipt->model?->name ?? 'N/A',
-                    'imei_one' => $receipt->imei_one,
-                    'imei_two' => $receipt->imei_two,
-                    'quantity' => $item->quantity,
-                    'price'    => $item->price,
-                    'total'    => $item->quantity * $item->price,
-                ];
-            }
+        foreach ($deviceReceipts as $receipt) {
+            $orderItem = $order->items->firstWhere('id', $receipt->order_item_id);
+            $quantity = $orderItem?->quantity ?? 1;
+            $response['products'][] = [
+                'brand'    => $receipt->brand?->name ?? 'N/A',
+                'model'    => $receipt->model?->name ?? 'N/A',
+                'imei_one' => $receipt->imei_one,
+                'imei_two' => $receipt->imei_two,
+                'quantity' => $quantity,
+                'price'    => $orderItem->price ?? 0,
+                'total'    => $quantity * $orderItem->price,
+            ];
         }
 
         $response['total_amount'] = collect($response['products'])->sum('total');
@@ -537,14 +592,20 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                     'Cancellation request already submitted'
                 );
             }
-            $order->order_status = 'cancelled';
-            $order->save();
-            CancelOrder::create([
-                'order_id'      => $order->id,
-                'order_item_id' => $orderItem->id,
-                'reason'        => $reason,
-                'status'        => 'requested',
-            ]);
+           
+            if($order->delivery_method = 'online'){
+                    if (empty($reason)) {
+                        throw new InvalidArgumentException(
+                            'Cancellation reason is required'
+                        );
+                    }
+                    CancelOrder::create([
+                    'order_id'      => $order->id,
+                    'order_item_id' => $orderItem->id,
+                    'reason'        => $reason,
+                    'status'        => 'requested',
+                ]);
+            }
 
             return [
                 'order_id'      => $order->id,
@@ -583,7 +644,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         /* ---------------- DELIVERED ---------------- */
         if ($action === 'delivered') {
 
-            if ($order->order_status !== 'shipped') {
+            if ($order->order_status !== 'shipped' && $order->delivery_method !== 'go_shop') {
                 throw new InvalidArgumentException(
                     'Only shipped orders can be delivered'
                 );
@@ -632,11 +693,63 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
 
 
 
+    // public function reOrder(int $orderId, int $customerId)
+    // {
+    //     return DB::transaction(function () use ($orderId, $customerId) {
+
+    //         // ✅ Fetch delivered order
+    //         $order = Order::with('items')
+    //             ->where('id', $orderId)
+    //             ->where('customer_id', $customerId)
+    //             ->where('order_status', 'delivered')
+    //             ->first();
+
+    //         if (!$order) {
+    //             throw new \Exception('Delivered order not found');
+    //         }
+
+    //         // 🧹 Clear existing active cart
+    //         MobileCart::where('user_id', $customerId)
+    //             ->where('is_ordered', 0)
+    //             ->delete();
+
+    //         $addedItems = [];
+
+    //         foreach ($order->items as $item) {
+
+    //             $mobile = VendorMobile::find($item->product_id);
+
+    //             if (!$mobile) {
+    //                 continue; // Skip deleted products
+    //             }
+
+    //             // 🛑 Stock validation
+    //             if ($item->quantity > $mobile->stock) {
+    //                 throw new \Exception(
+    //                     "{$mobile->model->name} does not have enough stock"
+    //                 );
+    //             }
+
+    //             // ✅ Add to cart
+    //             $cartItem = MobileCart::create([
+    //                 'user_id'            => $customerId,
+    //                 'mobile_listing_id'  => $mobile->id,
+    //                 'quantity'           => $item->quantity,
+    //                 'is_ordered'         => 0,
+    //             ]);
+
+    //             $addedItems[] = $cartItem;
+    //         }
+
+    //         return $addedItems;
+    //     });
+    // }
+
     public function reOrder(int $orderId, int $customerId)
     {
         return DB::transaction(function () use ($orderId, $customerId) {
 
-            // ✅ Fetch delivered order
+            // 1️⃣ Fetch delivered order with items
             $order = Order::with('items')
                 ->where('id', $orderId)
                 ->where('customer_id', $customerId)
@@ -647,35 +760,81 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 throw new \Exception('Delivered order not found');
             }
 
-            // 🧹 Clear existing active cart
-            MobileCart::where('user_id', $customerId)
-                ->where('is_ordered', 0)
-                ->delete();
+            // 2️⃣ Get ORDER vendor (must be single)
+            $orderVendorIds = VendorMobile::whereIn(
+                'id',
+                $order->items->pluck('product_id')
+            )->distinct()->pluck('vendor_id');
 
+            // if ($orderVendorIds->count() !== 1) {
+            //     throw new \Exception(
+            //         'Re-order is only allowed for orders from a single vendor'
+            //     );
+            // }
+
+            $orderVendorId = $orderVendorIds->first();
+
+            // 3️⃣ Check CART vendor (if cart not empty)
+            $cartVendorIds = MobileCart::where('user_id', $customerId)
+                ->where('is_ordered', 0)
+                ->join(
+                    'vendor_mobiles',
+                    'vendor_mobiles.id',
+                    '=',
+                    'mobile_carts.mobile_listing_id'
+                )
+                ->distinct()
+                ->pluck('vendor_mobiles.vendor_id');
+
+            if (
+                $cartVendorIds->isNotEmpty() &&
+                $cartVendorIds->first() !== $orderVendorId
+            ) {
+                throw new \Exception(
+                    'Clear your cart to add items from a different vendor.'
+                );
+            }
+
+            // 4️⃣ Add / merge products into cart
             $addedItems = [];
 
             foreach ($order->items as $item) {
 
-                $mobile = VendorMobile::find($item->product_id);
+                $mobile = VendorMobile::with('model')
+                    ->where('id', $item->product_id)
+                    ->where('vendor_id', $orderVendorId)
+                    ->first();
 
                 if (!$mobile) {
-                    continue; // Skip deleted products
+                    throw new \Exception('One of the products no longer exists');
                 }
 
-                // 🛑 Stock validation
+                // Stock validation
                 if ($item->quantity > $mobile->stock) {
                     throw new \Exception(
                         "{$mobile->model->name} does not have enough stock"
                     );
                 }
 
-                // ✅ Add to cart
-                $cartItem = MobileCart::create([
-                    'user_id'            => $customerId,
-                    'mobile_listing_id'  => $mobile->id,
-                    'quantity'           => $item->quantity,
-                    'is_ordered'         => 0,
-                ]);
+                $cartItem = MobileCart::where([
+                    'user_id'           => $customerId,
+                    'mobile_listing_id' => $mobile->id,
+                    'is_ordered'        => 0,
+                ])->first();
+
+                if ($cartItem) {
+                    // Combine quantity
+                    $cartItem->update([
+                        'quantity' => $cartItem->quantity + $item->quantity
+                    ]);
+                } else {
+                    $cartItem = MobileCart::create([
+                        'user_id'           => $customerId,
+                        'mobile_listing_id' => $mobile->id,
+                        'quantity'          => $item->quantity,
+                        'is_ordered'        => 0,
+                    ]);
+                }
 
                 $addedItems[] = $cartItem;
             }

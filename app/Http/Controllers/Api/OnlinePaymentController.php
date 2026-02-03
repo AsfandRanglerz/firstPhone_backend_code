@@ -28,20 +28,32 @@ class OnlinePaymentController extends Controller
             $newOrderNumber = $lastOrder ? $lastOrder->order_number + 1 : 10000000;
 
             // Create Order
-            $order = Order::create([
-                'customer_id'      => auth()->id(),
-                'order_number'     => $newOrderNumber,
-                'payment_status'   => 'unpaid',
-                'order_status'     => 'inprogress',
-                'delivery_method'  => $request->delivery_method,
-            ]);
+            $order = '';
+            if($request->delivery_method == 'Online'){
+                  $order = Order::create([
+                    'customer_id'      => auth()->id(),
+                    'order_number'     => $newOrderNumber,
+                    'payment_status'   => 'paid',
+                    'order_status'     => 'inprogress',
+                    'delivery_method'  => $request->delivery_method,
+                    'shipping_charges'  => $request->shipping_charges,
+                ]);
+            } else {
+                    $order = Order::create([
+                    'customer_id'      => auth()->id(),
+                    'order_number'     => $newOrderNumber,
+                    'payment_status'   => 'unpaid',
+                    'order_status'     => 'inprogress',
+                    'delivery_method'  => $request->delivery_method,
+                    'shipping_charges'  => $request->shipping_charges,
+                    ]);
+            }
 
             $vendorIds = [];
             $orderedListingIds = [];
 
             // Handle Single Product
             if (isset($products['product_id'])) {
-                $totalAmount = $products['price'];
                 $orderedListingIds[] = $products['product_id'];
                 $vendorIds[] = $products['vendor_id'];
 
@@ -52,6 +64,7 @@ class OnlinePaymentController extends Controller
                     'quantity'   => $products['quantity'] ?? 1,
                     'price'      => $products['price'],
                 ]);
+                $totalAmount = $product['price'] * ($product['quantity'] ?? 1);
             } else {
                 // Handle Multiple Products
                 foreach ($products as $product) {
@@ -66,10 +79,10 @@ class OnlinePaymentController extends Controller
                         'price'      => $product['price'],
                     ]);
 
-                    $totalAmount += $product['price'];
+                    $totalAmount += $product['price'] * ($product['quantity'] ?? 1);
                 }
             }
-
+            $totalAmount += $request->shipping_charges;
             // Update order total
             $order->update(['total_amount' => $totalAmount]);
 

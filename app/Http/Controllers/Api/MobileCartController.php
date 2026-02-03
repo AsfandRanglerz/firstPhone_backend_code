@@ -282,18 +282,22 @@ public function checkout(Request $request)
                     ->value('vendor_id');
             }
 
-            $checkout = CheckOut::create([
-                'user_id'    => $userId,
-                'vendor_id'   => $vendorId,        
-                'product_id'  => $productId, 
-                'vendor_name' => $item['shop_name'] ?? null,
-                'brand_name' => $item['brand_name'] ?? null,
-                'model_name' => $item['model_name'] ?? null,
-                'price'      => $item['price'] ?? 0,
-                'location'   => $item['location'] ?? null,
-                'image'      => $item['image'] ?? null, // from cart or listing
-                'quantity'   => $item['quantity'] ?? 1,
-            ]);
+           $checkout = CheckOut::updateOrCreate(
+                [
+                    'user_id'    => $userId,
+                    'vendor_id'  => $vendorId,
+                    'product_id'=> $productId,
+                ],
+                [
+                    'vendor_name' => $item['shop_name'] ?? null,
+                    'brand_name'  => $item['brand_name'] ?? null,
+                    'model_name'  => $item['model_name'] ?? null,
+                    'price'       => $item['price'] ?? 0,
+                    'location'    => $item['location'] ?? null,
+                    'image'       => $item['image'] ?? null,
+                    'quantity'    => $item['quantity'] ?? 1,
+                ]
+            );
 
             $checkouts[] = [
                 // 'checkout_id' => $checkout->id,

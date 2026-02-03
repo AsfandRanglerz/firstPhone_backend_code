@@ -99,7 +99,7 @@ class SocialLoginController extends Controller
                     }
                     
                     file_put_contents($savePath . $name, $img);
-                    $imagePath = "admin/assets/images/users/$name"; // 'public/' hata diya
+                    $imagePath = "public/admin/assets/images/users/$name"; // 'public/' hata diya
                 }
             } catch (\Exception $e) {
                 // Image download fail - continue without image
