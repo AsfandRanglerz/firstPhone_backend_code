@@ -273,6 +273,28 @@ class OrderController extends Controller
         }
     }
 
+    public function getOrderBrand($orderId)
+    {
+        try {
+            $receipts = $this->orderRepository->getBrandByOrderId($orderId);
+
+            return ResponseHelper::success($receipts, 'Brands fetched successfully', 'success');
+        } catch (\Exception $e) {
+            return ResponseHelper::error(null, $e->getMessage(), 'server_error');
+        }
+    }
+
+    public function getOrderBrandModel($orderId, $brandId)
+    {
+        try {
+            $receipts = $this->orderRepository->getBrandModelByOrderId($orderId, $brandId);
+
+            return ResponseHelper::success($receipts, 'Models fetched successfully', 'success');
+        } catch (\Exception $e) {
+            return ResponseHelper::error(null, $e->getMessage(), 'server_error');
+        }
+    }
+
     public function updateOrderStatusByVendor(Request $request, int $id)
     {
         try {

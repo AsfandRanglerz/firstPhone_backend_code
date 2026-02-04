@@ -104,6 +104,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sales-report', [OrderController::class, 'salesReport']);
     Route::get('/orders-statistics', [OrderController::class, 'getOrderStatistics']);
 
+    Route::get('/order-brand/{orderId}', [OrderController::class, 'getOrderBrand']);
+
+    Route::get('/order-brand-model/{orderId}/{brandId}', [OrderController::class, 'getOrderBrandModel']);
+
     //vendor create device receipt
     Route::post('/devicereceipts/{orderId}', [OrderController::class, 'deviceReceipt']);
     //customer to show the receipt
@@ -179,6 +183,7 @@ Route::get('/customerdevicedetails/{id}', [MobileListingController::class, 'getC
 
 // delivery methods
 Route::get('/delivery-method', [OnlinePaymentController::class, 'deliveryMethods']);
+
 
 
 

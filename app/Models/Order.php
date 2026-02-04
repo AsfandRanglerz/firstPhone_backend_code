@@ -32,8 +32,13 @@ class Order extends Model
     }
 
     public function shippingAddress()
-{
-    return $this->hasOne(ShippingAddress::class, 'customer_id', 'customer_id');
-}
+    {
+        return $this->hasOne(ShippingAddress::class, 'customer_id', 'customer_id');
+    }
+
+    public function cancelOrder()
+    {
+        return $this->hasOne(CancelOrder::class, 'order_id');
+    }
 
 }

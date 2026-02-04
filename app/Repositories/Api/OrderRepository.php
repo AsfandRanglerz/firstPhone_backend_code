@@ -79,6 +79,8 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
             // Only items of this vendor
             $vendorItems = $order->items->where('vendor_id', $vendorId);
 
+            $hasCancelRequest = $order->cancelOrder()->exists();
+
             // Vendor name
             $vendorName = optional($vendorItems->first()?->vendor)->name;
 
@@ -95,6 +97,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'total_products' => $vendorItems->sum('quantity'),
                 'date'           => Carbon::parse($order->created_at)->format('F d, Y'),
                 'order_status'   => $order->order_status,
+                'has_cancel_request' => $hasCancelRequest,
             ];
         });
     }
@@ -211,7 +214,9 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         $total = $subtotal + ($order->shipping_charges ?? 0);
         // $total = $subtotal;
         return [
-            'order_id'       => $order->id,
+            'id'       => $order->id,
+            'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
+            'order_id'       => '#' . $order->order_number,
             'customer'       => [
                 'name'          => $order->shippingAddress->name ?? $order->customer->name,
                 'email'         => $order->shippingAddress->email ?? $order->customer->email,
@@ -235,7 +240,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
             ]),
             'order_status'   => $order->order_status,
             'payment_status' => $order->payment_status,
-            // 'delivery_method' => $order->delivery_method,
+            'payment_method' => $order->delivery_method,
             // 'subtotal'       => $subtotal,
             // 'shipping'       => $shippingCharges,
             'total'          => $total,
@@ -351,9 +356,11 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         $total  = $subtotal + ($order->shipping_charges ?? 0);
 
         return [
+            'id'       => $order->id,
+            'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
             'order_id'        => '#' . $order->order_number,
             'order_status'    => ucfirst($order->order_status),
-            'delivery_method'  => ucfirst($order->delivery_method ?? 'online'),
+            'payment_method'  => ucfirst($order->delivery_method ?? 'online'),
             'payment_status'  => ucfirst($order->payment_status),
 
             // ⭐ PRODUCTS
@@ -523,6 +530,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             $response['products'][] = [
                 'brand'    => $receipt->brand?->name ?? 'N/A',
                 'model'    => $receipt->model?->name ?? 'N/A',
+                'storage'  => $orderItem?->product?->storage ?? 'N/A',
                 'imei_one' => $receipt->imei_one,
                 'imei_two' => $receipt->imei_two,
                 'quantity' => $quantity,
@@ -534,6 +542,46 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         $response['total_amount'] = collect($response['products'])->sum('total');
 
         return $response;
+    }
+
+
+    public function getBrandByOrderId(int $orderId): Collection
+    {
+        return OrderItem::with([
+            'product.brand'
+        ])
+        ->whereHas('order', function ($q) use ($orderId) {
+            $q->where('id', $orderId);
+        })
+        ->get()
+        ->map(function ($item) {
+            return [
+                'brand_id'   => $item->product?->brand?->id,
+                'brand_name' => $item->product?->brand?->name,
+            ];
+        })
+        ->unique('brand_id')
+        ->values();
+    }
+
+   public function getBrandModelByOrderId(int $orderId, int $brandId): Collection
+    {
+        return OrderItem::with('product.model')
+            ->whereHas('order', function ($q) use ($orderId) {
+                $q->where('id', $orderId);
+            })
+            ->whereHas('product', function ($q) use ($brandId) {
+                $q->where('brand_id', $brandId);
+            })
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'model_id'   => $item->product?->model?->id,
+                    'model_name' => $item->product?->model?->name,
+                ];
+            })
+            ->unique('model_id')
+            ->values();
     }
 
     public function updateOrderStatusByVendor(
@@ -555,7 +603,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         $order = Order::with('items')->findOrFail($orderId);
     
         /* ---------------- CANCEL REQUEST ---------------- */
-        if ($action === 'cancel') {
+         if ($action === 'cancel') {
 
             if (!$orderItemId) {
                 throw new InvalidArgumentException('Order item ID is required');
@@ -577,13 +625,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 throw new AuthorizationException('Unauthorized order item');
             }
 
-            if (empty($reason)) {
-                throw new InvalidArgumentException(
-                    'Cancellation reason is required'
-                );
-            }
 
-            $alreadyRequested = CancelOrder::where('order_item_id', $orderItemId)
+            $alreadyRequested = CancelOrder::where('order_id', $orderId)
                 ->where('status', 'requested')
                 ->exists();
 
@@ -592,28 +635,40 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                     'Cancellation request already submitted'
                 );
             }
-           
-            if($order->delivery_method = 'online'){
+                if($order->delivery_method !== 'online'){
+                    $order->order_status = 'cancelled';
+                    $order->save();
+                }
+                if($order->delivery_method === 'online'){
                     if (empty($reason)) {
                         throw new InvalidArgumentException(
                             'Cancellation reason is required'
                         );
                     }
-                    CancelOrder::create([
-                    'order_id'      => $order->id,
-                    'order_item_id' => $orderItem->id,
-                    'reason'        => $reason,
-                    'status'        => 'requested',
-                ]);
-            }
-
-            return [
+                        CancelOrder::create([
+                        'order_id'      => $order->id,
+                        'order_item_id' => $orderItem->id,
+                        'reason'        => $reason,
+                        'status'        => 'requested',
+                        ]);
+                        return [
+                            'order_id'      => $order->id,
+                            'order_item_id' => $orderItem->id,
+                            'order_status'  => $order->order_status,
+                            'payment_status'=> $order->payment_status,
+                            'message'       => 'Cancellation request sent to admin',
+                        ];
+                }
+                return [
                 'order_id'      => $order->id,
                 'order_item_id' => $orderItem->id,
                 'order_status'  => $order->order_status,
                 'payment_status'=> $order->payment_status,
-                'message'       => 'Cancellation request sent to admin',
+                'message'       => 'Order cancelled successfully',
             ];
+            
+
+            
         }
 
         /* ---------------- SHIPPED ---------------- */

@@ -129,12 +129,18 @@ class HomeRepository implements HomeRepositoryInterface
 
                 $distance = null;
 
-                // If user sent location, calculate distance
-                if ($customerLat && $customerLng && $product->vendor) {
+                if ($customerLat !== null && $customerLng !== null && $product->vendor) {
+
                     $vLat = $product->vendor->latitude;
                     $vLng = $product->vendor->longitude;
 
-                    if ($vLat && $vLng) {
+                    if ($vLat !== null && $vLng !== null) {
+
+                        $customerLat = (float) $customerLat;
+                        $customerLng = (float) $customerLng;
+                        $vLat = (float) $vLat;
+                        $vLng = (float) $vLng;
+
                         $distance = 6371 * acos(
                             cos(deg2rad($customerLat)) *
                             cos(deg2rad($vLat)) *
@@ -142,9 +148,11 @@ class HomeRepository implements HomeRepositoryInterface
                             sin(deg2rad($customerLat)) *
                             sin(deg2rad($vLat))
                         );
+
                         $distance = round($distance, 1); // KM
                     }
                 }
+
 
                 // ❗ If radius check is required but no location = skip
                 if ($customerLat && $customerLng && $distance !== null) {
