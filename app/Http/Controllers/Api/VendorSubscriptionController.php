@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Repositories\Api\Interfaces\VendorSubscriptionRepositoryInterface;
+use App\Models\SubscriptionPlan;
 
 class VendorSubscriptionController extends Controller
 {
@@ -23,5 +24,15 @@ class VendorSubscriptionController extends Controller
     public function current(Request $request)
     {
         return $this->vendorSubscriptionRepo->current($request);
+    }
+
+    public function getSubscriptionPlans()
+    {
+        $plans = SubscriptionPlan::where('is_active', 1)->latest()->get();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Subscription plans retrieved successfully',
+            'data' => $plans
+        ], 200);
     }
 }

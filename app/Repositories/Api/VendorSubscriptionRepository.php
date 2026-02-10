@@ -64,15 +64,15 @@ class VendorSubscriptionRepository implements VendorSubscriptionRepositoryInterf
             |--------------------------------------------------------------------------
             */
             if ($activeSubscription && $activeSubscription->plan->price > 0 && $plan->price > 0) {
-                if ($plan->price <= $activeSubscription->plan->price) {
-                    return response()->json([
-                        'status' => 'forbidden',
-                        'message' => 'You cannot switch to a lower or same-tier paid plan while current one is active.',
-                    ], 403);
-                } else {
+                // if ($plan->price <= $activeSubscription->plan->price) {
+                //     return response()->json([
+                //         'status' => 'forbidden',
+                //         'message' => 'You cannot switch to a lower or same-tier paid plan while current one is active.',
+                //     ], 403);
+                // } else {
                     // ✅ Allow upgrade → deactivate old plan
                     $activeSubscription->update(['is_active' => false]);
-                }
+                // }
             }
 
             /*
@@ -135,7 +135,7 @@ class VendorSubscriptionRepository implements VendorSubscriptionRepositoryInterf
     {
         $vendor = auth()->user();
 
-        $subscription = VendorSubscription::where('vendor_id', $vendor->id)
+        $subscription = VendorSubscription::with(['plan:id,name'])->where('vendor_id', $vendor->id)
             ->where('is_active', true)
             ->where('end_date', '>=', now())
             ->latest()

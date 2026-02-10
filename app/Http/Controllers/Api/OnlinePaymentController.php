@@ -103,7 +103,7 @@ class OnlinePaymentController extends Controller
                             'order_number' => (string) $order->order_number,
                             'total_amount' => (string) $totalAmount,
                         ]
-                    );
+                    ); 
                 }
             }
 

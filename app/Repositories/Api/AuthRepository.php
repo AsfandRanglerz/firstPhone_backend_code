@@ -51,7 +51,11 @@ class AuthRepository implements AuthRepositoryInterface
         if (!Hash::check($request['password'], $user->password)) {
             return ['error' => 'Invalid credentials'];
         }
-
+        // ✅ Save / Update FCM Token
+            if (!empty($request['fcm_token'])) {
+                $user->fcm_token = $request['fcm_token'];
+                $user->save();
+            }
         $token = $user->createToken($request['type'] . '_token')->plainTextToken;
         $user->token = $token;
 
@@ -147,7 +151,7 @@ class AuthRepository implements AuthRepositoryInterface
         * --------------------------------------------------
         */
         if ($request['type'] === 'customer') 
-        { 
+        {
             // Handle profile image
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
@@ -440,40 +444,79 @@ class AuthRepository implements AuthRepositoryInterface
         }
         return ['error' => 'User not authenticated'];
     }
-    public function updateProfile(array $request)
-    {
-        if ($request['type'] === 'customer') {
-            $user = User::where('email', $request['email'])->first();
-        } elseif ($request['type'] === 'vendor') {
-            $user = Vendor::where('email', $request['email'])->first();
-        } else {
-            return ['error' => 'Invalid user type'];
-        }
-        if (!$user) {
-            return ['error' => ucfirst($request['type']) . ' not found'];
-        }
-        $user->name = $request['name'] ?? $user->name;
-        $user->phone = $request['phone'] ?? $user->phone;
-        $user->email = $request['email'] ?? $user->email;
-        if (isset($request['image']) && $request['image'] instanceof \Illuminate\Http\UploadedFile) {
-            $file = $request['image'];
-            $extension = $file->getClientOriginalExtension();
-            $filename = time() . '.' . $extension;
-            $file->move(public_path('admin/assets/images/users'), $filename);
-            $user->image = 'public/admin/assets/images/users/' . $filename;
+
+
+public function updateProfile(array $request)
+{
+    if ($request['type'] === 'customer') {
+        $user = User::where('email', $request['email'])->first();
+    } elseif ($request['type'] === 'vendor') {
+        $user = Vendor::where('email', $request['email'])->first();
+    } else {
+        return ['error' => 'Invalid user type'];
+    }
+
+    if (!$user) {
+        return ['error' => ucfirst($request['type']) . ' not found'];
+    }
+
+    // Update basic fields
+    $user->name = $request['name'] ?? $user->name;
+    $user->phone = $request['phone'] ?? $user->phone;
+    $user->email = $request['email'] ?? $user->email;
+
+    // SINGLE PROFILE IMAGE
+    if (isset($request['image']) && $request['image'] instanceof \Illuminate\Http\UploadedFile) {
+        $file = $request['image'];
+        $extension = $file->getClientOriginalExtension();
+        $filename = time() . '.' . $extension;
+        $file->move(public_path('admin/assets/images/users'), $filename);
+        $user->image = 'public/admin/assets/images/users/' . $filename;
+    }
+
+    // ONLY FOR VENDOR
+    if ($request['type'] === 'vendor') {
+
+        // Save multiple vendor images in vendor_images table
+        if (isset($request['vendor_images']) && is_array($request['vendor_images'])) {
+
+            // Optional: remove old images if needed
+            VendorImage::where('vendor_id', $user->id)->delete();
+
+            foreach ($request['vendor_images'] as $file) {
+                if ($file instanceof \Illuminate\Http\UploadedFile) {
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = time() . rand(1000, 9999) . '.' . $extension;
+                    $file->move(public_path('admin/assets/images/vendors'), $filename);
+
+                    VendorImage::create([
+                        'vendor_id' => $user->id,
+                        'image' => 'public/admin/assets/images/vendors/' . $filename,
+                    ]);
+                }
+            }
         }
 
-        if ($request['type'] === 'vendor') {
         if (isset($request['repair_service'])) {
             $user->repair_service = $request['repair_service'];
         }
         if (isset($request['location'])) {
             $user->location = $request['location'];
         }
-     }
-
-        $user->save();
     }
+
+    $user->save();
+
+    // 🔥 Include vendor images in response
+    if ($request['type'] === 'vendor') {
+        $user->load('images'); // Eager load vendor_images
+    }
+
+    return $user;
+}
+
+
+
     public function changePassword(array $request)
     {
         $user = auth()->user();
@@ -506,7 +549,6 @@ class AuthRepository implements AuthRepositoryInterface
         } 
     }
 
-
     if (!$customer && !$vendor) {
         return [
             'status' => 'not_found',
@@ -515,13 +557,8 @@ class AuthRepository implements AuthRepositoryInterface
     }
 
     // Get latest tokens
-    $customerToken = $customer
-        ? optional($customer->tokens()->latest()->first())->token
-        : null;
-
-    $vendorToken = $vendor
-        ? optional($vendor->tokens()->latest()->first())->token
-        : null;
+    $customerToken = $customer ? $customer->createToken('customer_token')->plainTextToken : null;
+    $vendorToken   = $vendor ? $vendor->createToken('vendor_token')->plainTextToken : null;
 
     // ⭐ CASE 1: CUSTOMER ONLY
     if ($customer && !$vendor) {
@@ -597,5 +634,6 @@ class AuthRepository implements AuthRepositoryInterface
         ],
     ];
 }
+
 
 }

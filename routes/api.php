@@ -82,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/{notificationId}/seen', [NotificationController::class, 'seenNotification']);
+    Route::delete('/delete-notification', [NotificationController::class, 'deleteAllNotifications']);
+
     // Mobile Request API
     Route::get('/getrequestedmobile', [RequestFormController::class, 'getRequestedMobile']);
     Route::post('/mobilerequestform', [RequestFormController::class, 'mobilerequestform']);
@@ -143,6 +145,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //vendor subscription
     Route::post('/vendor-subscription/subscribe', [VendorSubscriptionController::class, 'subscribe']);
     Route::get('/vendor-subscription/current', [VendorSubscriptionController::class, 'current']);
+    Route::get('/subscription-plans', [VendorSubscriptionController::class, 'getSubscriptionPlans']);
 
     //search home screen
     Route::get('/mobile/search', [MobileSearchController::class, 'search']);
