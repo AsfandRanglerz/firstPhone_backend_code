@@ -37,6 +37,7 @@ public function getmobileListing()
                     'vendor' => $listing->vendor->name,
                     'price' => $listing->price,
                     'stock' => $listing->stock,
+                    'sold' => $listing->sold,
                     // 'image' => $listing->image ? array_map(function ($path) {
                     //     return asset($path);
                     // }, json_decode($listing->image, true) ?? []) : [],

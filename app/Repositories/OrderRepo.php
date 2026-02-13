@@ -30,22 +30,29 @@ class OrderRepo implements OrderRepoInterface
     ]);
 
     // ✅ Load order with items
-    $order = Order::with('items')->findOrFail($id);
+    $order = Order::with('items.product')->findOrFail($id);
 
     // ✅ Save previous status before updating
     $previousStatus = $order->order_status;
 
     $order->order_status = $request->order_status;
     $order->save();
+    if ($request->order_status === 'cancelled') {
+        foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+    }
 
     // ✅ If delivered and not previously delivered → subtract stock
     if ($request->order_status === 'delivered' && $previousStatus !== 'delivered') {
         foreach ($order->items as $item) {
             // product_id in order_items corresponds to id in vendor_mobiles
             $vendorMobile = VendorMobile::find($item->product_id);
-
+    
             if ($vendorMobile) {
-                $vendorMobile->stock = max(0, $vendorMobile->stock - $item->quantity);
+                $vendorMobile->sold = $vendorMobile->sold + $item->quantity;
                 $vendorMobile->save();
             }
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 use App\Models\ShippingAddress;
@@ -38,6 +39,62 @@ class OrderController extends Controller
             }
 
             return ResponseHelper::success($orders, 'Orders fetched successfully', 'success');
+        } catch (\Exception $e) {
+            return ResponseHelper::error(null, $e->getMessage(), 'server_error');
+        }
+    }
+
+    public function filterOrders(Request $request)
+    {
+        try {
+            $type = $request->get('type');
+            $payment_method = $request->get('payment_method');
+
+            if (!$type) {
+                return ResponseHelper::error(null, 'Type parameter is required', 'error');
+            }
+
+            if (!$payment_method) {
+                return ResponseHelper::error(null, 'Payment method parameter is required', 'error');
+            }
+
+            $type = $request->input('type'); // 'today' or 'overall'
+            $payment_method = $request->input('payment_method'); // 'cod', 'card', etc.
+
+            $query = Order::with(['items.vendor'])
+                ->where('delivery_method', $payment_method);
+
+            // Apply date filter if type is 'today'
+            if ($type === 'today') {
+                $query->whereDate('created_at', now());
+            }
+
+            $orders = $query->latest()->get()->map(function ($order) {
+                $items = $order->items;
+
+                $hasCancelRequest = $order->cancelOrder()->exists();
+
+                return [
+                    'id' => $order->id,
+                    'order_id'       => '#' . $order->order_number,
+                    'payment_method' => $order->delivery_method,
+                    'customer_id'    => $order->customer_id,
+                    'shop_name'      => $items->first()?->vendor?->name, // name of first vendor
+                    'total_price'    => $items->sum(fn ($item) => $item->price * $item->quantity),
+                    'total_products' => $items->sum('quantity'),
+                    'date'           => Carbon::parse($order->created_at)->format('F d, Y'),
+                    'order_status'   => $order->order_status,
+                    'time' => $order->created_at->format('h:i A'),
+                    'has_cancel_request' => $hasCancelRequest,
+                ];
+            });
+
+            if ($orders->isEmpty()) {
+                return ResponseHelper::error([], "No orders found for type: {$type} and payment method: {$payment_method}", 'not_found');
+            }
+
+            return ResponseHelper::success($orders, 'Filtered orders fetched successfully', 'success');
+
         } catch (\Exception $e) {
             return ResponseHelper::error(null, $e->getMessage(), 'server_error');
         }
@@ -131,7 +188,7 @@ class OrderController extends Controller
     public function shippingAddress(ShippingAddressRequest $request)
     {
         try {
-            // $data = $request->validated();
+            $data = $request->validated();
             $data['customer_id'] = Auth::id();
             $shippingAddress = ShippingAddress::create($data);
             return ResponseHelper::success($shippingAddress, 'Shipping address saved successfully', 200);

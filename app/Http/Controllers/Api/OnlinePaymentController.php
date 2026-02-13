@@ -6,9 +6,12 @@ use App\Models\Order;
 use App\Models\CheckOut;
 use App\Models\OrderItem;
 use App\Models\MobileCart;
+use App\Models\VendorMobile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+
 
 class OnlinePaymentController extends Controller
 {
@@ -37,6 +40,7 @@ class OnlinePaymentController extends Controller
                     'order_status'     => 'inprogress',
                     'delivery_method'  => $request->delivery_method,
                     'shipping_charges'  => $request->shipping_charges,
+                    'created_at' => Carbon::now('Asia/Karachi'),
                 ]);
             } else {
                     $order = Order::create([
@@ -46,6 +50,7 @@ class OnlinePaymentController extends Controller
                     'order_status'     => 'inprogress',
                     'delivery_method'  => $request->delivery_method,
                     'shipping_charges'  => $request->shipping_charges,
+                    'created_at' => Carbon::now('Asia/Karachi'),
                     ]);
             }
 
@@ -64,7 +69,8 @@ class OnlinePaymentController extends Controller
                     'quantity'   => $products['quantity'] ?? 1,
                     'price'      => $products['price'],
                 ]);
-                $totalAmount = $product['price'] * ($product['quantity'] ?? 1);
+                $totalAmount = $products['price'] * ($products['quantity'] ?? 1);
+                VendorMobile::where('id', $products['product_id'])->decrement('stock', $products['quantity'] ?? 1);
             } else {
                 // Handle Multiple Products
                 foreach ($products as $product) {
@@ -80,6 +86,7 @@ class OnlinePaymentController extends Controller
                     ]);
 
                     $totalAmount += $product['price'] * ($product['quantity'] ?? 1);
+                    VendorMobile::where('id', $product['product_id'])->decrement('stock', $product['quantity'] ?? 1);
                 }
             }
             $totalAmount += $request->shipping_charges;

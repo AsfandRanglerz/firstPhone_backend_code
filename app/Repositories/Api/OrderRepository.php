@@ -27,7 +27,7 @@ use App\Repositories\Api\Interfaces\OrderRepositoryInterface;
 class OrderRepository implements OrderRepositoryInterface
 {
     public function getOrdersByCustomerAndStatus(int $customerId, string $status): Collection
-{
+{  
     $data = [];
         if($status == 'inprogress'){
             $data = [$status,'shipped'];
@@ -56,6 +56,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'total_price'     => $order->total_amount,
                 'total_products'  => $order->items->sum('quantity'),
                 'date'            => Carbon::parse($order->created_at)->format('F d, Y'),
+                'time' => $order->created_at->format('h:i A'),
                 'order_status'    => $order->order_status,
             ];
         });
@@ -99,6 +100,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'total_price'    => $vendorItems->sum(fn ($item) => $item->price * $item->quantity),
                 'total_products' => $vendorItems->sum('quantity'),
                 'date'           => Carbon::parse($order->created_at)->format('F d, Y'),
+                'time' => $order->created_at->format('h:i A'),
                 'order_status'   => $order->order_status,
                 'has_cancel_request' => $hasCancelRequest,
             ];
@@ -154,6 +156,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'cod_orders_total'    => $totals['cod']    ?? 0,
                 'online_orders_total' => $totals['online'] ?? 0,
                 'pickup_orders_total' => $totals['pickup'] ?? 0,
+                'goshop_orders_total' => $totals['go_shop'] ?? 0,
                 'grand_total'         => array_sum($totals),
             ];
         };
@@ -219,6 +222,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         return [
             'id'       => $order->id,
             'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
+            'order_time' => $order->created_at->format('h:i A'),
             'order_id'       => '#' . $order->order_number,
             'customer'       => [
                 'name'          => $order->shippingAddress->name ?? $order->customer->name,
@@ -361,11 +365,12 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         return [
             'id'       => $order->id,
             'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
+            'order_time' => $order->created_at->format('h:i A'),
             'order_id'        => '#' . $order->order_number,
             'order_status'    => ucfirst($order->order_status),
             'payment_method'  => ucfirst($order->delivery_method ?? 'online'),
             'payment_status'  => ucfirst($order->payment_status),
-
+            
             // ⭐ PRODUCTS
             'products' => $vendorItems->map(function ($item) {
 
@@ -603,7 +608,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         $reason
     ) {
 
-        $order = Order::with('items')->findOrFail($orderId);
+        $order = Order::with('items.product')->findOrFail($orderId);
     
         /* ---------------- CANCEL REQUEST ---------------- */
          if ($action === 'cancel') {
@@ -641,7 +646,12 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 if($order->delivery_method !== 'online'){
                     $order->order_status = 'cancelled';
                     $order->save();
-                }
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
+                        }
+                    }
+                } 
                 if($order->delivery_method === 'online'){
                     if (empty($reason)) {
                         throw new InvalidArgumentException(
@@ -686,7 +696,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             $order->order_status = 'shipped';
             // ✅ Set shipped_at only once
             if (is_null($order->shipped_at)) {
-                $order->shipped_at = now();
+                $order->shipped_at = Carbon::now('Asia/Karachi');
             }
             $order->save();
 
@@ -711,10 +721,15 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             $order->order_status = 'delivered';
             // ✅ Set shipped_at only once
             if (is_null($order->delivered_at)) {
-                $order->delivered_at = now();
+                $order->delivered_at = Carbon::now('Asia/Karachi');
             }
             $order->save();
-
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->sold = $item->product->sold + $item->quantity;
+                    $item->product->save();
+                }
+            }
             return [
                 'order_id'     => $order->id,
                 'order_status' => 'delivered',

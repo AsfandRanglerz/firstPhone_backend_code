@@ -115,6 +115,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //customer to show the receipt
     Route::get('/receipt/{deviceReceiptId}', [OrderController::class, 'getReceipt']);
 
+    // filter orders
+    Route::get('/filter-orders', [OrderController::class, 'filterOrders']);
+
     // vendor side Mobile Listing
     Route::post('/mobilelisting', [VendorMobileListingController::class, 'mobileListing']);
     Route::get('/getmobilelisting', [MobileListingController::class, 'getmobileListing']);
