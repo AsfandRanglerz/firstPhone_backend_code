@@ -68,6 +68,8 @@ Route::post('/check-email', [AuthController::class, 'checkEmail']);
 
 //social login
 Route::post('/social-login', [SocialLoginController::class, 'socialLogin']);
+Route::post('/apple-login', [SocialLoginController::class, 'appleLogin']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/getProfile', [AuthController::class, 'getProfile']);

@@ -113,6 +113,7 @@ class SocialLoginController extends Controller
                 'phone'      => $data['phone'] ?? $user->phone,
                 'login_type' => $data['login_type'], // ✅ Yeh fix hai - login_type save hoga
                 'toggle'     => 1,
+                'fcm_token'     => $data['fcm_token'] ?? $user->fcm_token,
                 $socialColumn => $data['social_id'] // Social ID bhi update karo
             ];
 
@@ -142,6 +143,7 @@ class SocialLoginController extends Controller
             'image'       => $imagePath,
             'login_type'  => $data['login_type'], // ✅ Yeh fix hai
             $socialColumn => $data['social_id'],
+            'fcm_token'     => $data['fcm_token'] ?? null,
             'toggle'      => 1
         ]);
 
@@ -304,5 +306,52 @@ class SocialLoginController extends Controller
             'token'        => $vendor->createToken('auth_token')->plainTextToken
         ]);
     }
+
+    public function appleLogin(Request $request)
+    {
+        try {
+            $data = $request->only(['social_id', 'fcm_token','type']);
+    
+            if (empty($data['social_id'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Apple ID (social_id) is required.',
+                ], 400);
+            }
+    
+            $socialColumn = 'apple_social_id';
+    
+            // Check if user already exists by Apple social ID
+            $user = User::where($socialColumn, $data['social_id'])->first();
+    
+            if (!$user) {
+                // Create new user since email is not provided
+                $user = new User();
+                $user->$socialColumn = $data['social_id'];
+            }
+    
+            // Update or set values
+            $user->login_type = $request->input('login_type', 'apple');
+            $user->fcm_token = $data['fcm_token'] ?? $user->fcm_token;
+            $user->save();
+    
+            // Generate token
+            $token = $user->createToken('auth_token')->plainTextToken;
+            $user->token = $token; 
+            return response()->json([
+                'message' => 'Apple login successful!',
+                'user' => $user,
+                // 'token' => $token,
+                'type' => $data['type'] ?? 'customer',
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Apple login error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     
 }

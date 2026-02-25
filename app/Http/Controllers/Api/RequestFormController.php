@@ -27,31 +27,43 @@ class RequestFormController extends Controller
 
 
 
-    public function mobilerequestform(Request $request)
-    {
-        try {
-            $user = Auth::user();
+   public function mobilerequestform(Request $request)
+{
+    $errors = [];
 
-            
+    try {
+        $user = Auth::user();
+
+        // Brand
+        try {
             $brand = Brand::firstOrCreate(
                 ['name' => trim($request->brand_name)],
                 ['slug' => Str::slug($request->brand_name)]
             );
+        } catch (\Exception $e) {
+            $errors['brand'] = "Brand creation error: " . $e->getMessage();
+        }
 
+        // Model
+        try {
             $model = MobileModel::firstOrCreate(
                 [
                     'name' => trim($request->model_name),
-                    'brand_id' => $brand->id
+                    'brand_id' => $brand->id ?? null
                 ]
             );
+        } catch (\Exception $e) {
+            $errors['model'] = "Model creation error: " . $e->getMessage();
+        }
 
-            // Save mobile request
+        // Mobile Request
+        try {
             $mobileRequest = MobileRequest::create([
                 'customer_id' => $user->id,
                 'name'        => $user->name,
                 'location'    => $request->location,
-                'brand_id'    => $brand->id,
-                'model_id'    => $model->id,
+                'brand_id'    => $brand->id ?? null,
+                'model_id'    => $model->id ?? null,
                 'min_price'   => $request->min_price,
                 'max_price'   => $request->max_price,
                 'storage'     => $request->storage,
@@ -62,33 +74,37 @@ class RequestFormController extends Controller
                 'latitude'    => $request->latitude,
                 'longitude'   => $request->longitude,
             ]);
+        } catch (\Exception $e) {
+            $errors['mobile_request'] = "Mobile request save error: " . $e->getMessage();
+        }
 
-            // Customer location + radius
-            $lat = $request->latitude;
-            $lng = $request->longitude;
-            $radius = $request->location ?? 10; //
+        // Vendors within radius
+        $lat = $request->latitude;
+        $lng = $request->longitude;
+        $radius = 50;
 
-            // Vendors filter by brand/model & distance
-            $vendors = Vendor::whereHas('mobileListings', function ($q) use ($brand, $model) {
-                $q->where('brand_id', $brand->id)
-                    ->where('model_id', $model->id);
-            })
-                ->select('*', DB::raw("6371 * acos(cos(radians($lat)) 
-                        * cos(radians(latitude)) 
-                        * cos(radians(longitude) - radians($lng)) 
-                        + sin(radians($lat)) 
-                        * sin(radians(latitude))) AS distance"))
+        try {
+            $vendors = Vendor::select('*', DB::raw("6371 * acos(cos(radians($lat)) 
+                    * cos(radians(latitude)) 
+                    * cos(radians(longitude) - radians($lng)) 
+                    + sin(radians($lat)) 
+                    * sin(radians(latitude))) AS distance"))
                 ->having('distance', '<=', $radius)
                 ->orderBy('distance')
                 ->get();
+        } catch (\Exception $e) {
+            $errors['vendors'] = "Vendor query error: " . $e->getMessage();
+            $vendors = collect(); // empty collection if query fails
+        }
 
-            // Send notifications
-            foreach ($vendors as $vendor) {
+        // Send notifications
+        foreach ($vendors as $vendor) {
+            try {
                 if (!empty($vendor->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
                         $vendor->fcm_token,
                         "New Mobile Request",
-                        "Customer requested {$brand->name} {$model->name}",
+                        "A customer is looking for {$brand->name} {$model->name} ({$request->storage}, {$request->ram} RAM). Add stock to fulfill this request.",
                         [
                             'request_id' => (string) $mobileRequest->id,
                             'min_price'  => (string) $mobileRequest->min_price,
@@ -97,30 +113,37 @@ class RequestFormController extends Controller
                         ]
                     );
                 }
+            } catch (\Exception $e) {
+                $errors['notifications'][$vendor->id] = "Notification error: " . $e->getMessage();
             }
-
-            return ResponseHelper::success(
-                $mobileRequest,
-                "Mobile request submitted successfully & vendors notified (within {$radius} km)",
-                null,
-                200
-            );
-        } catch (ValidationException $e) {
-            return ResponseHelper::error($e->errors(), 'Validation failed', 'error', 422);
-        } catch (\Exception $e) { return ResponseHelper::error([ 'message' => $e->getMessage(), 'file' => $e->getFile(),'line' => $e->getLine()
-                ],
-                'Unexpected error',
-                'error',
-                500
-            );
         }
+
+        return ResponseHelper::success(
+            $mobileRequest ?? null,
+            "Mobile request submitted successfully & vendors notified (within {$radius} km)",
+            $errors ?: null,
+            200
+        );
+
+    } catch (\Exception $e) {
+        return ResponseHelper::error(
+            [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine()
+            ],
+            'Unexpected error',
+            'error',
+            500
+        );
     }
+}
 
     public function getRequestedMobile()
     {
         try {
             $mobileRequests = $this->requestedMobileRepository->getRequestedMobile();
-            if ($mobileRequests->isEmpty()) {
+             if ($mobileRequests->isEmpty()) {
                 return ResponseHelper::error(null, 'No requested mobiles found within 10 km radius', 'not_found', 404);
             }
             return ResponseHelper::success($mobileRequests, 'Requests fetched successfully', null, 200);

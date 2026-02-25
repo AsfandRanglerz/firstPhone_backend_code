@@ -21,5 +21,11 @@ class User extends Authenticatable
         'password',
         'image',
         'toggle',
+        'fcm_token',
+        'login_type',
+        'google_social_id',
+        'apple_social_id',
+        'deactivation_reason',
+        'otp',
     ];
 }

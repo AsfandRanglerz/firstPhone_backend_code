@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use App\Models\DeviceReceipt;
 use App\Models\MobileListing;
 use InvalidArgumentException;
+use App\Helpers\NotificationHelper;
 use App\Models\ShippingAddress;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -607,8 +608,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
         $orderItemId,
         $reason
     ) {
-
-        $order = Order::with('items.product')->findOrFail($orderId);
+  
+        $order = Order::with(['items.product','customer'])->findOrFail($orderId);
     
         /* ---------------- CANCEL REQUEST ---------------- */
          if ($action === 'cancel') {
@@ -652,6 +653,18 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                         }
                     }
                 } 
+                if ($order->delivery_method == 'cod' || $order->delivery_method == 'go_shop') {
+                    if (!empty($order->customer->fcm_token)) {
+                        NotificationHelper::sendFcmNotification(
+                            $order->customer->fcm_token,
+                            "Order Cancelled",
+                            "Your order #{$order->order_number} has been cancelled.",
+                            [
+                                'order_id' => (string) $order->id,
+                            ]
+                        );
+                    }
+                }
                 if($order->delivery_method === 'online'){
                     if (empty($reason)) {
                         throw new InvalidArgumentException(
@@ -699,7 +712,19 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 $order->shipped_at = Carbon::now('Asia/Karachi');
             }
             $order->save();
-
+            if ($order->delivery_method == 'cod' || $order->delivery_method == 'online') {
+                if (!empty($order->customer->fcm_token)) {
+                    NotificationHelper::sendFcmNotification(
+                        $order->customer->fcm_token,
+                        "Order Shipped",
+                        "Your order #{$order->order_number} has been dispatched.",
+                        [
+                            'order_id' => (string) $order->id,
+                        ]
+                    );
+                }
+            }
+               
             return [
                 'order_id'     => $order->id,
                 'order_status' => 'shipped',
@@ -719,7 +744,6 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             }
 
             $order->order_status = 'delivered';
-            // ✅ Set shipped_at only once
             if (is_null($order->delivered_at)) {
                 $order->delivered_at = Carbon::now('Asia/Karachi');
             }
@@ -728,6 +752,18 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 if ($item->product) {
                     $item->product->sold = $item->product->sold + $item->quantity;
                     $item->product->save();
+                }
+            }
+            if ($order->delivery_method == 'cod' || $order->delivery_method == 'go_shop' || $order->delivery_method == 'online') {
+                if (!empty($order->customer->fcm_token)) {
+                    NotificationHelper::sendFcmNotification(
+                        $order->customer->fcm_token,
+                        "Order Delivered",
+                        "Your order #{$order->order_number} has been successfully delivered. Your receipt has been generated and is now available for download.",
+                        [
+                            'order_id' => (string) $order->id,
+                        ]
+                    );
                 }
             }
             return [

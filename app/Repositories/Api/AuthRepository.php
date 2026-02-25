@@ -4,6 +4,8 @@ namespace App\Repositories\Api;
 
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorSubscription;
+use App\Models\SubscriptionPlan;
 use App\Models\EmailOtp;
 use App\Mail\UserEmailOtp;
 use App\Mail\ForgotOTPMail;
@@ -232,7 +234,18 @@ class AuthRepository implements AuthRepositoryInterface
             ]);
 
             $vendor->plain_password = $plainPassword;
+            
+            $plan = SubscriptionPlan::where('name', 'Free')->first();
+            $start = now();
+            $end = $start->copy()->addDays($plan->duration_days);
 
+            $subscription = VendorSubscription::create([
+                'vendor_id' => $vendor->id,
+                'subscription_plan_id' => $plan->id,
+                'start_date' => $start,
+                'end_date' => $end,
+                'is_active' => true,
+            ]);
 
             // Save Shop Images
             if ($request->hasFile('image')) {
@@ -440,6 +453,7 @@ class AuthRepository implements AuthRepositoryInterface
         $user = auth()->user();
         if ($user) {
             $user->tokens()->delete();
+            $user->update(['fcm_token' => null]);
             return true;
         }
         return ['error' => 'User not authenticated'];
@@ -566,13 +580,7 @@ public function updateProfile(array $request)
             'status' => 'success',
             'message' => 'This email belongs to a customer',
             'customer' => [
-                'data' => [
-                    'id' => $customer->id,
-                    'name' => $customer->name,
-                    'email' => $customer->email,
-                    'phone' => $customer->phone,
-                    'image' => $customer->image,
-                ],
+                'data' => $customer,
                 'token' => $customerToken,
             ],
         ];
@@ -584,18 +592,7 @@ public function updateProfile(array $request)
             'status' => 'success',
             'message' => 'This email belongs to a vendor',
             'vendor' => [
-                'data' => [
-                    'id' => $vendor->id,
-                    'name' => $vendor->name,
-                    'email' => $vendor->email,
-                    'phone' => $vendor->phone,
-                    'location' => $vendor->location,
-                    'cnic_front' => $vendor->cnic_front,
-                    'cnic_back' => $vendor->cnic_back,
-                    'images' => $vendor->images->pluck('image')->toArray(),
-                    'status' => $vendor->status,
-                    'status_message' => $vendorStatusMessage,
-                ],
+                'data' => $vendor,
                 'token' => $vendorToken,
             ],
         ];
@@ -607,29 +604,12 @@ public function updateProfile(array $request)
         'message' => 'Email exists as both customer and vendor',
 
         'customer' => [
-            'data' => [
-                'id' => $customer->id,
-                'name' => $customer->name,
-                'email' => $customer->email,
-                'phone' => $customer->phone,
-                'image' => $customer->image,
-            ],
+            'data' => $customer,
             'token' => $customerToken,
         ],
 
         'vendor' => [
-            'data' => [
-                'id' => $vendor->id,
-                'name' => $vendor->name,
-                'email' => $vendor->email,
-                'phone' => $vendor->phone,
-                'location' => $vendor->location,
-                'cnic_front' => $vendor->cnic_front,
-                'cnic_back' => $vendor->cnic_back,
-                'images' => $vendor->images->pluck('image')->toArray(),
-                'status' => $vendor->status,
-                'status_message' => $vendorStatusMessage,
-            ],
+            'data' => $vendor,
             'token' => $vendorToken,
         ],
     ];

@@ -28,9 +28,9 @@ class VendorSubscriptionController extends Controller
 
     public function getSubscriptionPlans()
     {
-        $plans = SubscriptionPlan::where('is_active', 1)->latest()->get();
+        $plans = SubscriptionPlan::where('is_active', 1)->get();
         return response()->json([
-            'status' => 'success',
+            'status' => 'success', 
             'message' => 'Subscription plans retrieved successfully',
             'data' => $plans
         ], 200);

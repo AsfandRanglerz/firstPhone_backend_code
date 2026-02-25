@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Log;
+use Exception;
+use Illuminate\Support\Facades\DB;
 use App\Models\VendorMobile;
+use App\Models\VendorSubscription;
 use Illuminate\Http\Request;
 use App\Models\MobileListing;
 use App\Helpers\ResponseHelper;
@@ -25,26 +29,39 @@ public function getmobileListing()
 {
     try{
         $vendor = Auth::id();
-        $listings = VendorMobile::with('brand')
+        $activeSubscription = VendorSubscription::with('plan')->where('vendor_id', $vendor)
+        ->where('is_active', 1)
+        ->first();
+        $listings = VendorMobile::with(['brand', 'vendor'])
             ->where('vendor_id', $vendor)
             ->get()
-            ->map(function ($listing) {
-                $images = json_decode($listing->image, true) ?? [];
-                $firstImage = !empty($images) ? asset($images[0]) : null;
-                return [
-                    'id' => $listing->id,
-                    'brand' => $listing->brand ? $listing->brand->name : null,
-                    'vendor' => $listing->vendor->name,
-                    'price' => $listing->price,
-                    'stock' => $listing->stock,
-                    'sold' => $listing->sold,
-                    // 'image' => $listing->image ? array_map(function ($path) {
-                    //     return asset($path);
-                    // }, json_decode($listing->image, true) ?? []) : [],
-                    'image' => $firstImage,
-                    'status' => $listing->status,
-                ];
-            });
+            ->map(function ($listing) use ($activeSubscription) {
+
+            $images = json_decode($listing->image, true) ?? [];
+            $firstImage = !empty($images) ? asset($images[0]) : null;
+
+            $isActive = false;
+
+            if ($activeSubscription) {
+                $isActive = DB::table('vendor_subscription_products')
+                    ->where('vendor_subscription_id', $activeSubscription->id)
+                    ->where('mobile_id', $listing->id)
+                    ->exists();
+            }
+
+            return [
+                'id' => $listing->id,
+                'brand' => $listing->brand?->name,
+                'vendor' => $listing->vendor?->name,
+                'price' => $listing->price,
+                'stock' => $listing->stock,
+                'sold' => $listing->sold,
+                'image' => $firstImage,
+                'status' => $listing->status,
+                'plan_status' => $isActive,
+                'plan_duration_days' => $activeSubscription ? $activeSubscription->duration_days : null
+            ];
+        });
         // $data = $listings->count() === 1 ? $listings->first() : $listings;
         return ResponseHelper::success($listings, 'Mobile listings retrieved successfully', null, 200);
 
@@ -89,7 +106,9 @@ public function getCustomerDeviceDetail($id)
 public function markAsSold($id)
 {
     try {
+        
         $customerId = Auth::id();
+        // return $customerId;
         $listing = MobileListing::where('id', $id)
             ->where('customer_id', $customerId)
             ->first();
@@ -106,9 +125,21 @@ public function markAsSold($id)
         $listing->save();
 
         return ResponseHelper::success($listing, 'Listing marked as sold successfully');
-    } catch (\Exception $e) {
-        return ResponseHelper::error($e->getMessage(), 'Failed to mark listing as sold', 'server_error', 500);
+    } catch (Exception $e) {
+    Log::error('Mark as sold error', [
+        'message' => $e->getMessage(),
+        'line' => $e->getLine(),
+        'file' => $e->getFile()
+    ]);
+
+    return ResponseHelper::error(
+        $e->getMessage(),
+        'Failed to mark listing as sold',
+        'server_error',
+        500
+    );
     }
+
 }
 
 public function customerdeleteMobileListing(Request $request)
@@ -143,8 +174,6 @@ public function customerdeleteMobileListing(Request $request)
         'message' => 'Mobile Listing deleted successfully',
     ], 200);
 }
-
-
 
 
 }

@@ -80,7 +80,7 @@ class VendorSubscriptionRepository implements VendorSubscriptionRepositoryInterf
             | 🧹 Deactivate old active plan (if any other case)
             |--------------------------------------------------------------------------
             */
-            if ($activeSubscription && $plan->price == 0) {
+            if ($activeSubscription && $plan->price >= 0) {
                 $activeSubscription->update(['is_active' => false]);
             }
 
@@ -135,7 +135,7 @@ class VendorSubscriptionRepository implements VendorSubscriptionRepositoryInterf
     {
         $vendor = auth()->user();
 
-        $subscription = VendorSubscription::with(['plan:id,name'])->where('vendor_id', $vendor->id)
+        $subscription = VendorSubscription::with(['plan:id,name,product_limit'])->where('vendor_id', $vendor->id)
             ->where('is_active', true)
             ->where('end_date', '>=', now())
             ->latest()
