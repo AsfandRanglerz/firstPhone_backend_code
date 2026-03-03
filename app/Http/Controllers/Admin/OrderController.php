@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\admin;
 use App\Models\CancelOrder;
 use App\Models\Order;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
 use Illuminate\Http\Request;
 use App\Repositories\Interfaces\OrderRepoInterface;
 
@@ -128,9 +130,59 @@ class OrderController extends Controller
 
     public function checkDeliveryStatus($id)
     {
-        $cancelOrder = CancelOrder::with('order')->findOrFail($id);
+        // $cancelOrder = CancelOrder::with('order')->findOrFail($id);
+        $cancelOrder = CancelOrder::with([
+            'order.customer',
+            'order.items.vendor'
+        ])->findOrFail($id);
 
         if ($cancelOrder->order->delivery_method === 'online') {
+
+            $order = $cancelOrder->order;
+  
+            $notifications = [
+                [
+                    'user_type' => 'vendors',
+                    'targetable_id' => $order->items->first()->vendor->id ?? null,
+                    'targetable_type' => 'App\Models\Vendor',
+                    'token' => $order->items->first()->vendor->fcm_token ?? null,
+                    'message' => "Your cancellation request for order #{$order->order_number} has been approved."
+                ],
+                [
+                    'user_type' => 'customers',
+                    'targetable_id' => $order->customer->id ?? null,
+                    'targetable_type' => 'App\Models\User',
+                    'token' => $order->customer->fcm_token ?? null,
+                    'message' => "Your order #{$order->order_number} has been cancelled."
+                ]
+            ];
+            foreach ($notifications as $notify) {
+                $notification = Notification::create([
+                    'user_type' => $notify['user_type'] ?? null,
+                    'title' => $notify['title'] ?? null,
+                    'description' => $notify['message'] ?? null,
+                ]);
+                NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $notify['targetable_id'] ?? null,
+                    'targetable_type' => $notify['targetable_type'] ?? null,
+                    'type' => 'New Mobile Request',
+                ]);
+
+                if (!empty($notify['token'])) { // null token se bachne ke liye
+                    NotificationHelper::sendFcmNotification(
+                        $notify['token'],
+                        "Order Cancelled",
+                        $notify['message'],
+                        [
+                            'type' => 'order_cancellation',
+                            'order_id' => (string) $cancelOrder->order_id,
+                        ]
+                    );
+                }
+            }
+            // return [$notifications, $order];
+
             return response()->json([
                 'delivery_method' => 'online'
             ]);

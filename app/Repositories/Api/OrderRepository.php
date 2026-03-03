@@ -16,12 +16,17 @@ use App\Models\VendorMobile;
 use Illuminate\Http\Request;
 use App\Models\DeviceReceipt;
 use App\Models\MobileListing;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
 use InvalidArgumentException;
 use App\Helpers\NotificationHelper;
 use App\Models\ShippingAddress;
+use App\Mail\OrderShipped;
+use App\Mail\OrderDelivered;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Auth\Access\AuthorizationException;
 use App\Repositories\Api\Interfaces\OrderRepositoryInterface;
 
@@ -37,7 +42,7 @@ class OrderRepository implements OrderRepositoryInterface
         }
     return Order::with(['items.vendor'])
         ->where('customer_id', $customerId)
-        ->where('order_status', $status)
+        ->whereIn('order_status', $data)
         ->latest()
         ->get()
         ->map(function ($order) {
@@ -59,6 +64,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'date'            => Carbon::parse($order->created_at)->format('F d, Y'),
                 'time' => $order->created_at->format('h:i A'),
                 'order_status'    => $order->order_status,
+                'payment_status' => $order->payment_status,
             ];
         });
 }
@@ -90,7 +96,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
             $vendorName = optional($vendorItems->first()?->vendor)->name;
 
             $vendorItem = $vendorItems->first();
-
+            $shipping = $order->delivery_method == 'go_shop' ? 0 : 200;
             return [
                 'id' => $order->id,
                 'order_item_id'  => $vendorItem->id,
@@ -98,12 +104,13 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'payment_method' => $order->delivery_method,
                 'customer_id'    => $order->customer_id,
                 'shop_name'      => $vendorName,
-                'total_price'    => $vendorItems->sum(fn ($item) => $item->price * $item->quantity),
+                'total_price'    => $vendorItems->sum(fn ($item) => $item->price * $item->quantity) + $shipping,
                 'total_products' => $vendorItems->sum('quantity'),
                 'date'           => Carbon::parse($order->created_at)->format('F d, Y'),
                 'time' => $order->created_at->format('h:i A'),
                 'order_status'   => $order->order_status,
                 'has_cancel_request' => $hasCancelRequest,
+                'payment_status' => $order->payment_status,
             ];
         });
     }
@@ -654,17 +661,29 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                     }
                 } 
                 if ($order->delivery_method == 'cod' || $order->delivery_method == 'go_shop') {
+                    $notification = Notification::create([
+                            'user_type' => 'customers',
+                            'title' => "Order Cancelled",
+                            'description' => "Your order #{$order->order_number} has been cancelled.",
+                        ]);
+                        NotificationTarget::create([
+                            'notification_id' => $notification->id,
+                            'targetable_id' => $order->customer->id ?? null,
+                            'targetable_type' => 'App\Models\User',
+                            'type' => 'Order Cancelled',
+                        ]);
                     if (!empty($order->customer->fcm_token)) {
                         NotificationHelper::sendFcmNotification(
                             $order->customer->fcm_token,
                             "Order Cancelled",
                             "Your order #{$order->order_number} has been cancelled.",
                             [
+                                'type' => 'order_cancellation',
                                 'order_id' => (string) $order->id,
                             ]
                         );
                     }
-                }
+                } 
                 if($order->delivery_method === 'online'){
                     if (empty($reason)) {
                         throw new InvalidArgumentException(
@@ -713,18 +732,31 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             }
             $order->save();
             if ($order->delivery_method == 'cod' || $order->delivery_method == 'online') {
+                 $notification = Notification::create([
+                            'user_type' => 'customers',
+                            'title' => "Order Shipped",
+                            'description' => "Your order #{$order->order_number} has been dispatched.",
+                        ]);
+                        NotificationTarget::create([
+                            'notification_id' => $notification->id,
+                            'targetable_id' => $order->customer->id ?? null,
+                            'targetable_type' => 'App\Models\User',
+                            'type' => 'Order Shipped',
+                        ]);
                 if (!empty($order->customer->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
                         $order->customer->fcm_token,
                         "Order Shipped",
                         "Your order #{$order->order_number} has been dispatched.",
                         [
+                            'type' => 'order_shipped',
                             'order_id' => (string) $order->id,
                         ]
                     );
                 }
+                Mail::to($order->customer->email)->send(new OrderShipped($order->customer->name, $order->order_number));
             }
-               
+             
             return [
                 'order_id'     => $order->id,
                 'order_status' => 'shipped',
@@ -748,6 +780,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 $order->delivered_at = Carbon::now('Asia/Karachi');
             }
             $order->save();
+            Mail::to($order->customer->email)->send(new OrderDelivered($order->customer->name, $order->order_number));
             foreach ($order->items as $item) {
                 if ($item->product) {
                     $item->product->sold = $item->product->sold + $item->quantity;
@@ -755,12 +788,25 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 }
             }
             if ($order->delivery_method == 'cod' || $order->delivery_method == 'go_shop' || $order->delivery_method == 'online') {
+                        $notification = Notification::create([
+                            'user_type' => 'customers',
+                            'title' => "Order Delivered",
+                            'description' => "Your order #{$order->order_number} has been successfully delivered. Your receipt has been generated and is now available for download.",
+                        ]);
+                        NotificationTarget::create([
+                            'notification_id' => $notification->id,
+                            'targetable_id' => $order->customer->id ?? null,
+                            'targetable_type' => 'App\Models\User',
+                            'type' => 'Order Delivered',
+
+                        ]);
                 if (!empty($order->customer->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
                         $order->customer->fcm_token,
                         "Order Delivered",
                         "Your order #{$order->order_number} has been successfully delivered. Your receipt has been generated and is now available for download.",
                         [
+                            'type' => 'order_delivered',
                             'order_id' => (string) $order->id,
                         ]
                     );

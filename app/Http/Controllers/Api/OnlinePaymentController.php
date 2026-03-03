@@ -10,6 +10,11 @@ use App\Models\VendorMobile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderPlaced;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
+use Illuminate\Support\Facades\Mail;
+use App\Helpers\NotificationHelper;
 use Carbon\Carbon;
 
 
@@ -98,14 +103,26 @@ class OnlinePaymentController extends Controller
             ->update(['is_ordered' => 1]);
 
             // Notify all unique vendors
+                $notification = Notification::create([
+                    'user_type' => 'vendors',
+                    'title' => "New Order Received",
+                    'description' => "You have received a new order #{$order->order_number}, Total: Rs {$totalAmount}",
+                ]);
             foreach (array_unique($vendorIds) as $vendorId) {
                 $vendor = \App\Models\Vendor::find($vendorId);
+                NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $vendorId,
+                    'targetable_type' => 'App\Models\Vendor',
+                    'type' => 'New Order Received',
+                ]);
                 if ($vendor && !empty($vendor->fcm_token)) {
                     \App\Helpers\NotificationHelper::sendFcmNotification(
                         $vendor->fcm_token,
                         "New Order Received",
                         "You have received a new order #{$order->order_number}, Total: Rs {$totalAmount}",
                         [
+                            'type' => 'order_placed',
                             'order_id'     => (string) $order->id,
                             'order_number' => (string) $order->order_number,
                             'total_amount' => (string) $totalAmount,
@@ -113,7 +130,8 @@ class OnlinePaymentController extends Controller
                     ); 
                 }
             }
-
+            $vendor = \App\Models\Vendor::find($vendorIds[0]);
+            Mail::to($vendor->email)->send(new OrderPlaced($vendor->name, $order->order_number));
             DB::commit();
 
             CheckOut::where('user_id', auth()->id())->delete();

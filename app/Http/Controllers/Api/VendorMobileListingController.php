@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Models\VendorMobile;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Auth;
 use App\Services\Api\VendorMobileListingService;
 
@@ -24,7 +28,7 @@ class VendorMobileListingController extends Controller
             $data = $this->vendormobileListingService->createListing($request);
             return ResponseHelper::success($data, 'Listing added successfully', null, 200);
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            // dd($e->getMessage());  
             return ResponseHelper::error($e->getMessage(), 'An error occurred while creating the listing', 'server_error', 500);
         }
     }
@@ -92,7 +96,7 @@ class VendorMobileListingController extends Controller
 
     // Find cart item
     $mobile = VendorMobile::where('id', $id)
-        ->where('user_id', $user->id) // ensure item belongs to the logged-in user
+        ->where('vendor_id', $user->id) // ensure item belongs to the logged-in user
         ->first();
 
     if (!$mobile) {

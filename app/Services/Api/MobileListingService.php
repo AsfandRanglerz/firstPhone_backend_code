@@ -3,13 +3,22 @@
 namespace App\Services\Api;
 
 use Carbon\Carbon;
+use App\Traits\SendsBulkEmails;
 use App\Models\MobileListing;
+use App\Models\Vendor;
+use App\Models\Brand;
+use App\Models\MobileModel;
+use App\Helpers\NotificationHelper;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\NotifyNearByVendorsOfListedMobile;
 use App\Repositories\Api\MobileListingRepository;
 
 class MobileListingService
 {
+
     protected $mobileListingRepo;
 
     public function __construct(MobileListingRepository $mobileListingRepo)
@@ -22,7 +31,9 @@ class MobileListingService
 public function createCustomerListing($request)
 {
     $customerId = Auth::id();
-
+    if (!$customerId) {
+        throw new \Exception('User not authenticated');
+    }
     // 🔍 Pehle check karo ke ye mobile pehle se listed to nahi
     $alreadyExists = MobileListing::where('customer_id', $customerId)
         ->where('brand', $request->brand)
@@ -73,14 +84,11 @@ if ($alreadyExists) {
         'image'       => json_encode($mediaPaths),
         'video'       => json_encode($videos),
     ];
-
     $listing = $this->mobileListingRepo->create($data);
-
     $data['id'] = $listing->id;
     $data['image'] = array_map(fn($path) => asset($path), $mediaPaths);
     $data['video'] = array_map(fn($path) => asset($path), $videos);
-
-    return $data;
+    return $data; 
 }
 
 
@@ -107,12 +115,14 @@ public function previewCustomerListing($id)
 public function getcustomermobileListing()
 {
     $customer = Auth::id();
-        $listings = MobileListing::with(['model','customer'])
+        // return $customer;
+
+        $listings = MobileListing::with(['customer'])
             ->where('customer_id', $customer)
             ->get()
             ->map(function ($listing) {
                 return [
-                    'model' => $listing->model ? $listing->model->name : null,
+                    'model' => $listing->model ? $listing->model : null,
                     'customer' => $listing->customer ? $listing->customer->name : null,
                     'price' => $listing->price,
                     'image' => $listing->image 
@@ -125,6 +135,7 @@ public function getcustomermobileListing()
             });
         $data = $listings->count() === 1 ? $listings->first() : $listings;
         return $data;
+
 }
 
 public function getcustomernearbyListings($vendorLat, $vendorLng, $radius = 50)

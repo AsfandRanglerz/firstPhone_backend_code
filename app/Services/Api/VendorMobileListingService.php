@@ -3,9 +3,15 @@
 namespace App\Services\Api;
 
 use Carbon\Carbon;
+use App\Traits\SendsBulkEmails;
 use Illuminate\Support\Arr;
 use App\Models\VendorMobile;
+use App\Models\Brand;
+use App\Models\MobileModel;
 use App\Models\MobileListing;
+use App\Models\MobileRequest;
+use App\Models\Notification;
+use App\Models\NotificationTarget;
 use App\Helpers\NotificationHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -13,10 +19,13 @@ use App\Models\VendorSubscription;
 use App\Models\VendorSubscriptionProducts;
 use Illuminate\Auth\Access\AuthorizationException;
 use App\Repositories\Api\VendorMobileListingRepository;
+use App\Mail\NotifyNearByCustomersOfRequestedMobile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class VendorMobileListingService
 {
+    use SendsBulkEmails;
+
     protected $vendormobileListingRepo;
 
     public function __construct(VendorMobileListingRepository $vendormobileListingRepo)
@@ -107,12 +116,14 @@ class VendorMobileListingService
             'image' => array_map(fn($path) => asset($path), $mediaPaths),
             'video' => array_map(fn($path) => asset($path), $videoPaths),
         ]);
-        $radius = 10; // default radius in km
-        $customers = MobileListing::with('customer')
+        $radius = 50; // default radius in km
+        $condition = $request->condition === 'New' ? 'brand-new' : 'Used';
+        $customers = MobileRequest::with('customer')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->where('brand', $listing->brand->name)
-            ->where('model', $listing->model->name)
+            ->where('brand_id', $listing->brand->id)
+            ->where('model_id', $listing->model->id)
+            ->where('condition', $listing->condition)
             ->select('*', DB::raw("
                     (6371 * acos(
                         cos(radians($listing->latitude)) 
@@ -125,16 +136,39 @@ class VendorMobileListingService
             ->having('distance', '<=', $radius)
             ->orderBy('distance', 'asc')
             ->get();
+            // Send email notifications
+            $data = $customers->pluck('customer')
+                  ->filter()      // null remove karega
+                  ->unique('id')  // duplicate customers remove karega
+                  ->values()
+                  ->all();
+            $listing->vendor_name = Auth::user()->name;
+            $listing->brand_name = Brand::find($listing->brand_id)->name ?? 'Unknown Brand';
+            $listing->model_name = MobileModel::find($listing->model_id)->name ?? 'Unknown Model';
+            $this->sendBulkEmails($data,NotifyNearByCustomersOfRequestedMobile::class,['data' => $listing]);  
             // Send notifications
-            foreach ($customers as $customer) {
-                if (!empty($customer->fcm_token)) {
+            
+            $notification = Notification::create([
+                    'user_type' => 'customers',
+                    'title' => "New Mobile Listing",
+                    'description' => "Good news! A nearby vendor has listed a mobile matching your request for a {$condition} {$listing->brand->name} {$listing->model->name}.",
+                ]);
+
+            foreach ($customers as $data) {
+                NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $data->customer->id,
+                    'targetable_type' => 'App\Models\User',
+                    'type' => 'New Mobile Request',
+                ]);
+                if (!empty($data->customer->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
-                        $customer->fcm_token,
+                        $data->customer->fcm_token,
                         "New Mobile Listing",
-                        "Good news! A vendor has listed a mobile matching your request.",
+                        "Good news! A nearby vendor has listed a mobile matching your request for a {$condition} {$listing->brand->name} {$listing->model->name}.",
                         [
+                            'type' => 'vendor_mobile_listed',
                             'listing_id' => (string) $listing->id,
-                            'price'  => (string) $listing->price,
                         ]
                     );
                 }

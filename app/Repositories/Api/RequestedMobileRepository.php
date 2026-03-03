@@ -3,6 +3,7 @@
 namespace App\Repositories\Api;
 
 use App\Models\MobileRequest;
+use carbon\Carbon;
 use App\Helpers\ResponseHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class RequestedMobileRepository implements RequestedMobileRepositoryInterface
 
         $vendorLat = $user->latitude;
         $vendorLng = $user->longitude;
-        $radius = 10; // Default: 10 km radius
+        $radius = 50; // Default: 10 km radius
 
         
         // Fetch mobile requests within the vendor's radius
@@ -51,6 +52,8 @@ class RequestedMobileRepository implements RequestedMobileRepositoryInterface
             'condition' => $item->condition,
             'description' => $item->description,
             'status' => $item->status,
+            'date'   => Carbon::parse($item->created_at)->format('F d, Y'),
+            'time' => $item->created_at->format('h:i A'),
         ];
     });
         return $mobileRequests;

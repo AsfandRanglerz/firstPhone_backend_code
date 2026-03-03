@@ -30,6 +30,7 @@ class NotificationController extends Controller
     public function index()
     {
         $notifications = Notification::with('targets.targetable')->latest()->get();
+
         $users = User::all();
         $subadmin = SubAdmin::all();
         $vendors = Vendor::all();

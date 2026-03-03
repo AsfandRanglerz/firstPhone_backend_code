@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\BrandsController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\SecurityController;
+use Illuminate\Support\Facades\Artisan;
 
 
 
@@ -42,7 +43,15 @@ use App\Http\Controllers\Admin\VendorMobileListingController;
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
-*/
+*/Route::get('/clear-all', function () {
+
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+
+    return "All caches cleared successfully!";
+});
 /*Admin routes
  * */
 
