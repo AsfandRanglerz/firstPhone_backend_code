@@ -46,6 +46,11 @@ Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
 Route::post('/payment/ipn-listener', [PaymentController::class, 'ipnListener']);
 
+Route::post('/payment/create', [PaymentController::class,'createPayment']);
+Route::get('/payment/webview/{reference}', [PaymentController::class,'webview']);
+Route::get('/payment/return', [PaymentController::class,'returnUrl']);
+Route::post('/payment/ipn', [PaymentController::class,'ipnListener']);
+Route::get('/payment/verify/{reference}', [PaymentController::class,'verifyPayment']);
 
 
 Route::post('/roles', [RoleController::class, 'store']);
@@ -91,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/{notificationId}/seen', [NotificationController::class, 'seenNotification']);
     Route::delete('/delete-notification', [NotificationController::class, 'deleteAllNotifications']);
+    Route::post('/chat', [NotificationController::class, 'Chat']);
     // Mobile Request API
     Route::get('/getrequestedmobile', [RequestFormController::class, 'getRequestedMobile']);
     Route::post('/mobilerequestform', [RequestFormController::class, 'mobilerequestform']);
@@ -170,7 +176,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Get vendor order list api
      Route::get('/vendor-orderlist/{orderId}', [OrderController::class, 'vendorOrderList']);
-
 
 });
 
