@@ -1,30 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\Api\FaqController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Admin\SeoController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\SideMenueController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\Api\MobileCartController;
-use App\Http\Controllers\Api\RequestFormController;
-use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\CustomerMobileListingController;
+use App\Http\Controllers\Api\DeleteAccountController;
+use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\FilterMobileController;
+use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\MobileCartController;
 use App\Http\Controllers\Api\MobileFilterController;
+use App\Http\Controllers\Api\MobileListingController;
 use App\Http\Controllers\Api\MobileSearchController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\DeleteAccountController;
-use App\Http\Controllers\Api\MobileListingController;
 use App\Http\Controllers\Api\OnlinePaymentController;
-use App\Http\Controllers\SideMenuPermissionController;
-use App\Http\Controllers\Api\VendorSubscriptionController;
-use App\Http\Controllers\Api\VendorMobileListingController;
-use App\Http\Controllers\Api\CustomerMobileListingController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\RequestFormController;
+use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\VendorMobileListingController;
+use App\Http\Controllers\Api\VendorSubscriptionController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SideMenueController;
+use App\Http\Controllers\SideMenuPermissionController;
+use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -59,6 +59,8 @@ Route::post('/sidemenue', [SideMenueController::class, 'store']);
 Route::post('/permission-insert', [SideMenuPermissionController::class, 'assignPermissions']);
 Route::post('/seo-bulk', [SeoController::class, 'storeBulk'])
     ->name('seo.bulk-update');
+//Chat Images API
+Route::post('/chat-images', [ChatController::class, 'chatImages']);
 
 // Auth APIs
 Route::post('/register', [AuthController::class, 'register']);

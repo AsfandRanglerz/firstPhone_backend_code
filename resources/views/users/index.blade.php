@@ -12,11 +12,18 @@
                                 <h4>Customers</h4>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
+                                <div class="d-flex justify-content-between mb-3">
                                 @if (Auth::guard('admin')->check() ||
                                         ($sideMenuPermissions->has('Users') && $sideMenuPermissions['Users']->contains('create')))
                                     <a class="btn btn-primary mb-3 text-white"
                                         href="{{ url('/admin/user-create') }}">Create</a>
                                 @endif
+                                <div>
+                                    <button class="btn btn-info" id="selectAllBtn">Select All</button>
+                                    {{-- <button class="btn btn-danger" id="deleteSelectedBtn">Delete Selected</button> --}}
+                                    <button class="btn btn-danger" id="deleteAllBtn">Delete All</button>
+                                </div>
+                                </div>
 
                                 {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('users') && $sideMenuPermissions['users']->contains('view')))
                                     <a class="btn btn-primary mb-3 text-white" href="{{ url('admin/users/trashed') }}">View
