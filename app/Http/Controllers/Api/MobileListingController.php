@@ -77,7 +77,7 @@ public function getNearbyCustomerListings(Request $request)
     try {
         $vendor = Auth::user();
 
-        $radius = $request->radius ?? 30; // default 30 km
+        $radius = $request->radius ?? 50; // default 30 km
 
         $listings = $this->mobileListingService->getcustomernearbyListings(
             $vendor->latitude,

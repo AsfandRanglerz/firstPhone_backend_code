@@ -26,7 +26,7 @@
                                             <th>Location</th>
                                             <th>Brand</th>
                                             <th>Model</th>
-                                            <th>Storage </th>
+                                            <th>ROM </th>
                                             <th>Price (PKR)</th>
                                             <th>Condition</th>
                                             <th>RAM </th>

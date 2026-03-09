@@ -50,12 +50,24 @@ class OrderController extends Controller
         $order = $this->orderRepo->updateOrderStatus($request, $id);
 
         $vendor = $order->vendor;
+        $notification = Notification::create([
+                    'user_type' => 'vendors',
+                    'title' => "Order Status Updated",
+                    'description' => "Your mobile listing is under review. We'll notify you once approved.",
+                ]);
+        NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $customerId,
+                    'targetable_type' => 'App\Models\User',
+                    'type' => 'order_status_updated',
+                ]);
         if ($vendor && $vendor->fcm_token) {
             NotificationHelper::sendFcmNotification(
                 $vendor->fcm_token,
                 "Order Status Updated",
                 "Order #{$order->id} status changed to {$order->order_status}.",
                 [
+                    'type' => 'order_status_updated',
                     'order_id' => $order->id,
                     'new_status' => $order->order_status
                 ]
@@ -166,7 +178,7 @@ class OrderController extends Controller
                     'notification_id' => $notification->id,
                     'targetable_id' => $notify['targetable_id'] ?? null,
                     'targetable_type' => $notify['targetable_type'] ?? null,
-                    'type' => 'New Mobile Request',
+                    'type' => 'order_cancellation',
                 ]);
 
                 if (!empty($notify['token'])) { // null token se bachne ke liye

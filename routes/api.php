@@ -24,6 +24,7 @@ use App\Http\Controllers\SideMenuPermissionController;
 use App\Http\Controllers\Api\VendorSubscriptionController;
 use App\Http\Controllers\Api\VendorMobileListingController;
 use App\Http\Controllers\Api\CustomerMobileListingController;
+use App\Http\Controllers\Api\PaymentController;
 
 
 /*
@@ -40,6 +41,10 @@ use App\Http\Controllers\Api\CustomerMobileListingController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+
+Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
+Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
+Route::post('/payment/ipn-listener', [PaymentController::class, 'ipnListener']);
 
 
 
@@ -63,6 +68,7 @@ Route::prefix('forgot-password')->group(function () {
     Route::post('/reset', [AuthController::class, 'forgotPasswordReset']);
     Route::post('/resend-otp', [AuthController::class, 'forgotPasswordResendOtp']);
 });
+
 //check email api
 Route::post('/check-email', [AuthController::class, 'checkEmail']);
 
@@ -85,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/{notificationId}/seen', [NotificationController::class, 'seenNotification']);
     Route::delete('/delete-notification', [NotificationController::class, 'deleteAllNotifications']);
-
     // Mobile Request API
     Route::get('/getrequestedmobile', [RequestFormController::class, 'getRequestedMobile']);
     Route::post('/mobilerequestform', [RequestFormController::class, 'mobilerequestform']);
@@ -107,9 +112,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/vendor/order/{id}/update-status',[OrderController::class, 'updateOrderStatusByVendor']);
     Route::get('/sales-report', [OrderController::class, 'salesReport']);
     Route::get('/orders-statistics', [OrderController::class, 'getOrderStatistics']);
-
+    
     Route::get('/order-brand/{orderId}', [OrderController::class, 'getOrderBrand']);
-
     Route::get('/order-brand-model/{orderId}/{brandId}', [OrderController::class, 'getOrderBrandModel']);
 
     //vendor create device receipt
@@ -119,7 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // filter orders
     Route::get('/filter-orders', [OrderController::class, 'filterOrders']);
-
+    
     // vendor side Mobile Listing
     Route::post('/mobilelisting', [VendorMobileListingController::class, 'mobileListing']);
     Route::get('/getmobilelisting', [MobileListingController::class, 'getmobileListing']);
@@ -145,13 +149,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile-cart-get', [MobileCartController::class, 'getCart']);
     Route::post('/mobile-cart-update', [MobileCartController::class, 'updateQuantity']);
     Route::delete('/mobile-cart-delete', [MobileCartController::class, 'deleteCart']);
-    Route::post('/checkout', [MobileCartController::class, 'checkout']);
+     Route::post('/checkout', [MobileCartController::class, 'checkout']);
 
     //vendor subscription
     Route::post('/vendor-subscription/subscribe', [VendorSubscriptionController::class, 'subscribe']);
     Route::get('/vendor-subscription/current', [VendorSubscriptionController::class, 'current']);
     Route::get('/subscription-plans', [VendorSubscriptionController::class, 'getSubscriptionPlans']);
-
+    
     //search home screen
     Route::get('/mobile/search', [MobileSearchController::class, 'search']);
     Route::get('/mobile/search-history', [MobileSearchController::class, 'searchHistory']);
@@ -167,6 +171,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get vendor order list api
      Route::get('/vendor-orderlist/{orderId}', [OrderController::class, 'vendorOrderList']);
 
+
 });
 
 // customer side Home Screen API
@@ -178,6 +183,7 @@ Route::get('/models/{brand_id}', [MobileFilterController::class, 'getModels']);
 Route::get('/brands', [MobileFilterController::class, 'getBrands']);
 Route::post('/mobile-filters-data', [MobileFilterController::class, 'getData']);
 Route::get('/getminmaxprice', [MobileFilterController::class, 'getMinMaxPrice']);
+
 
 //Mobile listing preview api
 Route::get('/mobilelistingpreview/{id}', [VendorMobileListingController::class, 'previewListing']);
@@ -191,7 +197,6 @@ Route::get('/customerdevicedetails/{id}', [MobileListingController::class, 'getC
 
 // delivery methods
 Route::get('/delivery-method', [OnlinePaymentController::class, 'deliveryMethods']);
-
 
 
 

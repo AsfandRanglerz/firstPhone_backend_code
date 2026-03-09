@@ -51,8 +51,15 @@ class NotificationRepo implements NotificationRepoInterface
             $target->seen = true;
             $target->save();
         }
-
-        return ['status' => true, 'seen' => $target->seen ?? false];
+        $response = [
+            'title' => $notification->title,
+            'description' => $notification->description,
+            'type' => $target->type,
+            'order_id' => $target->order_id,
+            'status' => true,
+            'seen' => $target->seen ?? false,
+        ];
+        return $response;
     }
 
 }

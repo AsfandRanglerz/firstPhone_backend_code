@@ -154,11 +154,23 @@ class OrderController extends Controller
             return ResponseHelper::success([
                 'order_id' => $order->id,
                 'status'   => $order->order_status,
+                'shipped_date' => $order->shipped_at 
+                    ? Carbon::parse($order->shipped_at)->format('F d, Y') 
+                    : null,
+                'shipped_time' => $order->shipped_at 
+                    ? $order->shipped_at->format('h:i A') 
+                    : null,
+                'delivered_date' => $order->delivered_at 
+                    ? Carbon::parse($order->delivered_at)->format('F d, Y') 
+                    : null,
+                'delivered_time' => $order->delivered_at 
+                    ? $order->delivered_at->format('h:i A') 
+                    : null,
                 'created_at' => $order->order_status === 'inprogress'
-                ? optional($order->created_at)->format('d M Y')
+                ? optional($order->created_at)->format('F d, Y')
                 : null,
             ], 'Order status fetched successfully', 'success');
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { 
             return ResponseHelper::error(null, $e->getMessage(), 'server_error');
         }
     }

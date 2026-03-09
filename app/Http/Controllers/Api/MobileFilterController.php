@@ -246,27 +246,27 @@ public function getData(Request $request)
         // PRICE FILTER (LIKE)
         // ---------------------------
         // ---------------------------
-// PRICE FILTER (BETWEEN)
-// ---------------------------
-if ($request->filled('min_price') && $request->filled('max_price')) {
+        // PRICE FILTER (BETWEEN)
+        // ---------------------------
+        if ($request->filled('min_price') && $request->filled('max_price')) {
 
-    $min = (int) $request->min_price;
-    $max = (int) $request->max_price;
+            $min = (int) $request->min_price;
+            $max = (int) $request->max_price;
 
-    if ($min > $max) {
-        [$min, $max] = [$max, $min];
-    }
+            if ($min > $max) {
+                [$min, $max] = [$max, $min];
+            }
 
-    $query->whereBetween('price', [$min, $max]);
+            $query->whereBetween('price', [$min, $max]);
 
-} elseif ($request->filled('min_price')) {
+        } elseif ($request->filled('min_price')) {
 
-    $query->where('price', '>=', (int) $request->min_price);
+            $query->where('price', '>=', (int) $request->min_price);
 
-} elseif ($request->filled('max_price')) {
+        } elseif ($request->filled('max_price')) {
 
-    $query->where('price', '<=', (int) $request->max_price);
-}
+            $query->where('price', '<=', (int) $request->max_price);
+        }
 
 
         // ---------------------------
@@ -278,38 +278,38 @@ if ($request->filled('min_price') && $request->filled('max_price')) {
         // LOCATION LOGIC
         // ---------------------------
         $radius = null;
-       $hasCity   = $request->filled('city');
-$hasLatLng = $request->filled('latitude') && $request->filled('longitude');
-$hasRadius = $request->filled('radius');
+        $hasCity   = $request->filled('city');
+        $hasLatLng = $request->filled('latitude') && $request->filled('longitude');
+        $hasRadius = $request->filled('radius');
 
-$latReq = $request->latitude;
-$lngReq = $request->longitude;
+        $latReq = $request->latitude;
+        $lngReq = $request->longitude;
 
-// CASE 1: City filter takes priority
-if ($hasCity) {
-    $city = strtolower($request->city);
-    $listings = $listings->filter(function ($item) use ($city) {
-         $vendorLocation = $item->vendor->location ?? '';
-        // case-insensitive search
-        return stripos($vendorLocation, $city) !== false;
-    })->values();
-}
-// CASE 2: Latitude/longitude with optional radius
-elseif ($hasLatLng) {
-    $radius = $hasRadius ? $request->radius : 50; // default 50 km
-    $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
-        if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
+        // CASE 1: City filter takes priority
+        if ($hasCity) {
+            $city = strtolower($request->city);
+            $listings = $listings->filter(function ($item) use ($city) {
+                $vendorLocation = $item->vendor->location ?? '';
+                // case-insensitive search
+                return stripos($vendorLocation, $city) !== false;
+            })->values();
+        }
+        // CASE 2: Latitude/longitude with optional radius
+        elseif ($hasLatLng) {
+            $radius = $hasRadius ? $request->radius : 50; // default 50 km
+            $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
+                if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
 
-        $theta = $lngReq - $item->vendor->longitude;
-        $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
-                cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
-        $dist = acos($dist);
-        $dist = rad2deg($dist);
-        $km   = $dist * 60 * 1.1515 * 1.609344;
+                $theta = $lngReq - $item->vendor->longitude;
+                $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
+                        cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
+                $dist = acos($dist);
+                $dist = rad2deg($dist);
+                $km   = $dist * 60 * 1.1515 * 1.609344;
 
-        return $km <= $radius;
-    })->values();
-}
+                return $km <= $radius;
+            })->values();
+        }
 
         // ---------------------------
         // FORMAT RESPONSE

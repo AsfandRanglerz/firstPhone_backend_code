@@ -114,7 +114,7 @@ class OnlinePaymentController extends Controller
                     'notification_id' => $notification->id,
                     'targetable_id' => $vendorId,
                     'targetable_type' => 'App\Models\Vendor',
-                    'type' => 'New Order Received',
+                    'type' => 'order_placed',
                 ]);
                 if ($vendor && !empty($vendor->fcm_token)) {
                     \App\Helpers\NotificationHelper::sendFcmNotification(
