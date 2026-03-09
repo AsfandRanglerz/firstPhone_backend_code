@@ -28,7 +28,7 @@
                                             <th>Model</th>
                                             <th>Min Price (PKR)</th>
                                             <th>Max Price (PKR)</th>
-                                            <th>Storage</th>
+                                            <th>ROM</th>
                                             <th>RAM</th>
                                             <th>Color</th>
                                             <th>Condition</th>

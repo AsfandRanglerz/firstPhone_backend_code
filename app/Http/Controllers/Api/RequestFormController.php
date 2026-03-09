@@ -124,7 +124,7 @@ class RequestFormController extends Controller
                     'notification_id' => $notification->id,
                     'targetable_id' => $vendor->id,
                     'targetable_type' => 'App\Models\Vendor',
-                    'type' => 'New Mobile Request',
+                    'type' => 'mobile_request',
                 ]);
                     if (!empty($vendor->fcm_token)) {
                         NotificationHelper::sendFcmNotification(
@@ -133,7 +133,7 @@ class RequestFormController extends Controller
                             "A nearby customer is looking for a {$condition} {$brand->name} {$model->name}. Add inventory now to capture this sale.",
                             [
                                 'type' => 'mobile_request',
-                                'request_id' => (string) $mobileRequest->id,
+                                'order_id' => (string) $mobileRequest->id,
                                 'min_price'  => (string) $mobileRequest->min_price,
                                 'max_price'  => (string) $mobileRequest->max_price,
                                 'distance'   => (string) round($vendor->distance, 2) . " km"

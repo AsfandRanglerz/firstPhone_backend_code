@@ -31,6 +31,7 @@ class MobileListingService
 public function createCustomerListing($request)
 {
     $customerId = Auth::id();
+    $customer = Auth::user();
     if (!$customerId) {
         throw new \Exception('User not authenticated');
     }
@@ -40,55 +41,77 @@ public function createCustomerListing($request)
         ->where('model', $request->model)
         ->exists();
 
-if ($alreadyExists) {
-        // Instead of throwing exception, bas error message return kar do
-        return [
-            'error' => true,
-            'message' => 'You have already listed this mobile model.'
-        ];
-    }
-
-    // ✅ Handle media upload
-    $mediaPaths = [];
-    if ($request->hasFile('image')) {
-        foreach ($request->file('image') as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $filename = time() . '_' . uniqid() . '.' . $extension;
-            $file->move(public_path('admin/assets/images/users/'), $filename);
-            $mediaPaths[] = 'public/admin/assets/images/users/' . $filename;
+    if ($alreadyExists) {
+            // Instead of throwing exception, bas error message return kar do
+            return [
+                'error' => true,
+                'message' => 'You have already listed this mobile model.'
+            ];
         }
-    }
 
-    $videos = [];
-        if ($request->hasFile('video')) {
-            foreach ($request->file('video') as $file) {
+        // ✅ Handle media upload
+        $mediaPaths = [];
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $file) {
                 $extension = $file->getClientOriginalExtension();
                 $filename = time() . '_' . uniqid() . '.' . $extension;
-                $file->move(public_path('admin/assets/videos/'), $filename);
-                $videos[] = 'public/admin/assets/videos/' . $filename;
+                $file->move(public_path('admin/assets/images/users/'), $filename);
+                $mediaPaths[] = 'public/admin/assets/images/users/' . $filename;
             }
         }
 
-    $data = [
-        'brand'    => $request->brand,
-        'model'    => $request->model,
-        'location'    => $request->location,
-        'latitude'    => $request->latitude,
-        'longitude'   => $request->longitude,
-        'storage'     => $request->storage,
-        'ram'         => $request->ram,
-        'price'       => $request->price,
-        'condition'   => $request->condition,
-        'about'       => $request->about,
-        'customer_id' => $customerId,
-        'image'       => json_encode($mediaPaths),
-        'video'       => json_encode($videos),
-    ];
-    $listing = $this->mobileListingRepo->create($data);
-    $data['id'] = $listing->id;
-    $data['image'] = array_map(fn($path) => asset($path), $mediaPaths);
-    $data['video'] = array_map(fn($path) => asset($path), $videos);
-    return $data; 
+        $videos = [];
+            if ($request->hasFile('video')) {
+                foreach ($request->file('video') as $file) {
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = time() . '_' . uniqid() . '.' . $extension;
+                    $file->move(public_path('admin/assets/videos/'), $filename);
+                    $videos[] = 'public/admin/assets/videos/' . $filename;
+                }
+            }
+
+        $data = [
+            'brand'    => $request->brand,
+            'model'    => $request->model,
+            'location'    => $request->location,
+            'latitude'    => $request->latitude,
+            'longitude'   => $request->longitude,
+            'storage'     => $request->storage,
+            'ram'         => $request->ram,
+            'price'       => $request->price,
+            'condition'   => $request->condition,
+            'about'       => $request->about,
+            'customer_id' => $customerId,
+            'image'       => json_encode($mediaPaths),
+            'video'       => json_encode($videos),
+        ];
+        $listing = $this->mobileListingRepo->create($data);
+        $data['id'] = $listing->id;
+        $data['image'] = array_map(fn($path) => asset($path), $mediaPaths);
+        $data['video'] = array_map(fn($path) => asset($path), $videos);
+            $notification = Notification::create([
+                    'user_type' => 'customers',
+                    'title' => "Requested New Mobile Listing",
+                    'description' => "Your mobile listing is under review. We'll notify you once approved.",
+                ]);
+            NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $customerId,
+                    'targetable_type' => 'App\Models\User',
+                    'type' => 'requested_customer_mobile_listed',
+                ]);
+            if (!empty($customer->fcm_token)) {
+                    NotificationHelper::sendFcmNotification(
+                        $customer->fcm_token,
+                        "Requested New Mobile Listing",
+                        "Your mobile listing is under review. We'll notify you once approved.",
+                        [
+                            'type' => 'requested_customer_mobile_listed',
+                            'order_id' => (string) $listing->id,
+                        ]
+                    );
+            }
+        return $data; 
 }
 
 

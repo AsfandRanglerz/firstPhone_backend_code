@@ -159,7 +159,8 @@ class VendorMobileListingService
                     'notification_id' => $notification->id,
                     'targetable_id' => $data->customer->id,
                     'targetable_type' => 'App\Models\User',
-                    'type' => 'New Mobile Request',
+                    'type' => 'vendor_mobile_listed',
+                    'order_id' => $listing->id,
                 ]);
                 if (!empty($data->customer->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
@@ -168,7 +169,7 @@ class VendorMobileListingService
                         "Good news! A nearby vendor has listed a mobile matching your request for a {$condition} {$listing->brand->name} {$listing->model->name}.",
                         [
                             'type' => 'vendor_mobile_listed',
-                            'listing_id' => (string) $listing->id,
+                            'order_id' => (string) $listing->id,
                         ]
                     );
                 }

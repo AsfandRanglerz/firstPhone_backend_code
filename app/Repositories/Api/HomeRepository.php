@@ -69,7 +69,7 @@ class HomeRepository implements HomeRepositoryInterface
         return $query->get()->map(function ($listing) {
             $images = json_decode($listing->image, true) ?? [];
 
-            return [ 
+            return [
                 'id'             => $listing->id,
                 // 'vendor'         => $listing->vendor?->name,
                 'vendor_id'     => $listing->vendor?->id,
@@ -153,7 +153,6 @@ class HomeRepository implements HomeRepositoryInterface
                     }
                 }
 
-
                 // ❗ If radius check is required but no location = skip
                 if ($customerLat && $customerLng && $distance !== null) {
                     if ($distance > $radius) {
@@ -188,13 +187,13 @@ class HomeRepository implements HomeRepositoryInterface
     }
 
 
-    public function getDeviceDetails($id)
+   public function getDeviceDetails($id)
     {
         $listing = VendorMobile::with(['brand', 'model'])
             ->where('id', $id)
             ->firstOrFail();
 
-        if (empty($listing->image)) {
+       if (empty($listing->image)) {
 
         // If NO video uploaded → return null
         $images = null;

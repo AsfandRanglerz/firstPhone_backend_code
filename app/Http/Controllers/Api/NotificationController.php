@@ -36,7 +36,7 @@ class NotificationController extends Controller
 
 
 public function seenNotification(Request $request, $notificationId)
-{
+{  
     try {
         $user = auth()->guard('vendors')->user() ?? auth()->user();
 
@@ -51,7 +51,7 @@ public function seenNotification(Request $request, $notificationId)
             return ResponseHelper::error(null, $result['message'], 'error', 404);
         }
 
-        return ResponseHelper::success(['seen' => $result['seen']], 'Notification marked as seen', 'success', 200);
+        return ResponseHelper::success(['seen' => $result], 'Notification marked as seen', 'success', 200);
 
     } catch (\Exception $e) {
         return ResponseHelper::error($e->getMessage(), 'Failed to mark notification as seen', 'error', 500);
@@ -116,6 +116,7 @@ public function deleteAllNotifications()
         return ResponseHelper::error($e->getMessage(), 'Failed to clear notifications', 'error', 500);
     }
 }
+
 
 
 

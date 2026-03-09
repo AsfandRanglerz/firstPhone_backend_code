@@ -44,7 +44,31 @@ class MobileListingController extends Controller
         $mobile = MobileListing::findOrFail($id);
         $mobile->status = 0; // 0 = Approved
         $mobile->save();
-        // Vendors within radius
+        // notify customer for approval
+        $customer = User::find($mobile->customer_id);
+            $notification = Notification::create([
+                    'user_type' => 'customers',
+                    'title' => "Requested New Mobile Listing",
+                    'description' => "Good news! Your mobile listing of {$mobile->brand} {$mobile->model} is approved and listed.",
+            ]);
+            NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $customer->id,
+                    'targetable_type' => 'App\Models\User',
+                    'type' => 'customer_mobile_listed_status',
+                ]);
+            if (!empty($customer->fcm_token)) {
+                    NotificationHelper::sendFcmNotification(
+                        $customer->fcm_token,
+                        "Requested New Mobile Listing",
+                        "Good news! Your mobile listing of {$mobile->brand} {$mobile->model} is approved and listed.",
+                        [
+                            'type' => 'customer_mobile_listed_status',
+                            'order_id' => (string) $mobile->id,
+                        ]
+                    );
+            }
+        // notify Vendors within radius
         try {
             $lat = (float) $mobile->latitude;
             $lng = (float) $mobile->longitude;
@@ -81,7 +105,7 @@ class MobileListingController extends Controller
                         'notification_id' => $notification->id,
                         'targetable_id' => $vendor->id,
                         'targetable_type' => 'App\Models\Vendor',
-                        'type' => 'New Mobile Listing',
+                        'type' => 'customer_mobile_listed',
                     ]);
                     NotificationHelper::sendFcmNotification(
                         $vendor->fcm_token,
@@ -89,7 +113,7 @@ class MobileListingController extends Controller
                         "A nearby customer has listed a {$mobile->brand} {$mobile->model} for sale. Check it out!",
                         [
                             'type' => 'customer_mobile_listed',
-                            'request_id' => (string) $mobile->id,
+                            'order_id' => (string) $mobile->id,
                             'price' => (string) $mobile->price,
                         ]
                     );

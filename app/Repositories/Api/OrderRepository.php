@@ -46,7 +46,7 @@ class OrderRepository implements OrderRepositoryInterface
         ->latest()
         ->get()
         ->map(function ($order) {
-
+ 
             // Vendor name from first item
             $vendorName = optional($order->items->first()?->vendor)->name;
 
@@ -127,7 +127,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
     public function getOrderByIdAndCustomer(int $orderId, int $customerId): Order
     {
         return Order::where('id', $orderId)
-            ->where('customer_id', $customerId)
+            // ->where('customer_id', $customerId)
             ->firstOrFail();
     }
 
@@ -229,7 +229,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         // $total = $subtotal;
         return [
             'id'       => $order->id,
-            'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
+            'order_date'     => Carbon::parse($order->created_at)->format('F d, Y'),
             'order_time' => $order->created_at->format('h:i A'),
             'order_id'       => '#' . $order->order_number,
             'customer'       => [
@@ -372,7 +372,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
 
         return [
             'id'       => $order->id,
-            'order_date'     => Carbon::parse($order->created_at)->format('d-m-Y'),
+            'order_date'     => Carbon::parse($order->created_at)->format('F d, Y'),
             'order_time' => $order->created_at->format('h:i A'),
             'order_id'        => '#' . $order->order_number,
             'order_status'    => ucfirst($order->order_status),
@@ -670,7 +670,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                             'notification_id' => $notification->id,
                             'targetable_id' => $order->customer->id ?? null,
                             'targetable_type' => 'App\Models\User',
-                            'type' => 'Order Cancelled',
+                            'type' => 'order_cancellation',
                         ]);
                     if (!empty($order->customer->fcm_token)) {
                         NotificationHelper::sendFcmNotification(
@@ -741,7 +741,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                             'notification_id' => $notification->id,
                             'targetable_id' => $order->customer->id ?? null,
                             'targetable_type' => 'App\Models\User',
-                            'type' => 'Order Shipped',
+                            'type' => 'order_shipped',
+                            'order_id' => $order->id,
                         ]);
                 if (!empty($order->customer->fcm_token)) {
                     NotificationHelper::sendFcmNotification(
@@ -797,7 +798,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                             'notification_id' => $notification->id,
                             'targetable_id' => $order->customer->id ?? null,
                             'targetable_type' => 'App\Models\User',
-                            'type' => 'Order Delivered',
+                            'type' => 'order_delivered',
 
                         ]);
                 if (!empty($order->customer->fcm_token)) {

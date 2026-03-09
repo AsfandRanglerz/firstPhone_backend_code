@@ -46,9 +46,17 @@ class MobileSearchController extends Controller
                         });
                     }
                 })
+                // Filter VendorMobile directly by 50 km radius
+                ->whereRaw("
+                    (6371 * acos(
+                        cos(radians(?)) * cos(radians(latitude)) *
+                        cos(radians(longitude) - radians(?)) +
+                        sin(radians(?)) * sin(radians(latitude))
+                    )) <= ?
+                ", [$customerLat, $customerLng, $customerLat, 50])
                 ->select('id', 'vendor_id', 'model_id', 'brand_id', 'price', 'image')
                 ->get();
-
+            
             // If no result found → send empty array instead of 404
             if ($mobiles->isEmpty()) {
                 return response()->json([
