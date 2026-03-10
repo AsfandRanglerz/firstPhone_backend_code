@@ -10,7 +10,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Vendors</h4> {{--  --}}
+                                <h4 class="text-danger">Vendors - Who have listed mobiles matching the requested brand, model and condition.</h4> {{--  --}}
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
 
@@ -30,7 +30,9 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $vendor->name }}</td>
-                                                    <td>{{ $vendor->email }}</td>
+                                                    <td><a href="mailto:{{ $vendor->email ?? '' }}" class="mail-to">
+                                                        {{ $vendor->email ?? '' }}
+                                                    </a></td>
                                                     <td>{{ $vendor->phone }}</td>
                                                     <td>{{ $vendor->location }}</td>
                                                    

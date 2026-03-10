@@ -28,8 +28,8 @@
                                             <th>Model</th>
                                             <th>Min Price (PKR)</th>
                                             <th>Max Price (PKR)</th>
-                                            <th>ROM</th>
                                             <th>RAM</th>
+                                            <th>ROM</th>
                                             <th>Color</th>
                                             <th>Condition</th>
                                             <th>Description</th>
@@ -69,8 +69,8 @@
                                                         <span class="text-muted">No Price</span>
                                                     @endif
                                                 </td>
-                                                <td>{{ $mobilerequest->storage }}</td>
                                                 <td>{{ $mobilerequest->ram }}</td>
+                                                <td>{{ $mobilerequest->storage }}</td>
                                                 <td>{{ $mobilerequest->color }}</td>
                                                 <td>{{ $mobilerequest->condition }}</td>
                                                 <td>
