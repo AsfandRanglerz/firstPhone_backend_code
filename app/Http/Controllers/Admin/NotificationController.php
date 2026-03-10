@@ -29,7 +29,11 @@ class NotificationController extends Controller
 
     public function index()
     {
-        $notifications = Notification::with('targets.targetable')->latest()->get();
+        $notifications = Notification::with('targets.targetable')
+        ->where('sent_by', 'admin')
+        ->where('delete_by_admin', 0)
+        ->latest()
+        ->get();
 
         $users = User::all();
         $subadmin = SubAdmin::all();
@@ -90,6 +94,7 @@ class NotificationController extends Controller
 
         // Dispatch job
         SendNotificationJob::dispatch([
+            'sent_by' => 'admin',
             'user_type' => $request->user_type,
             'title' => $request->title,
             'description' => $request->description,
@@ -102,7 +107,8 @@ class NotificationController extends Controller
     public function destroy(Request $request, $id)
     {
         $notification = Notification::find($id);
-        $notification->delete();
+        $notification->delete_by_admin = 1;
+        $notification->save();
         return redirect()->route('notification.index')->with(['success' => 'Notification Deleted Successfully']);
     }
 
@@ -110,10 +116,8 @@ class NotificationController extends Controller
 
     public function deleteAll()
     {
-        NotificationTarget::query()->delete();
-        Notification::query()->delete();
-
-        return redirect()->route('notification.index')->with('message', 'All notifications have been deleted');
+        Notification::where('sent_by', 'admin')->where('delete_by_admin', 0)->update(['delete_by_admin' => 1]);
+        return redirect()->route('notification.index')->with('success', 'All notifications have been deleted');
     }
 
     public function getUsersByType(Request $request)

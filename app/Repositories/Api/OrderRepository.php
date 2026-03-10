@@ -65,6 +65,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'time' => $order->created_at->format('h:i A'),
                 'order_status'    => $order->order_status,
                 'payment_status' => $order->payment_status,
+                'user_type'       => 'vendor',
             ];
         });
 }

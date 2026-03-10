@@ -73,13 +73,14 @@ class MobileFilterController extends Controller
 
     /**
      * Get filtered listings by brand, model, storage, ram, etc.
-	 */
+     */
+    
 
 // public function getData(Request $request)
 // {
 //     try {
 //         // ---------------------------
-//         // BRAND & MODEL REQUIRED
+//         // REQUIRED FIELDS
 //         // ---------------------------
 //         if (!$request->filled('brand_id') || !$request->filled('model_id')) {
 //             return response()->json([
@@ -91,113 +92,85 @@ class MobileFilterController extends Controller
 //         // ---------------------------
 //         // BASE QUERY
 //         // ---------------------------
-//         $query = VendorMobile::with(['vendor', 'model'])
-//             ->join('vendors', 'vendors.id', '=', 'vendor_mobiles.vendor_id');
+//         $query = VendorMobile::with('vendor', 'model')
+//             ->where('brand_id', $request->brand_id)
+//             ->where('model_id', $request->model_id);
 
-//         // Mandatory filters (vendor_mobiles)
-//         $query->where('vendor_mobiles.brand_id', $request->brand_id)
-//               ->where('vendor_mobiles.model_id', $request->model_id);
+//         // OPTIONAL FILTERS
+//         if ($request->filled('repair_service')) {
+//             $query->whereHas('vendor', function ($q) use ($request) {
+//                 $q->where('repair_service', $request->repair_service);
+//             });
+//         }
+//         if ($request->filled('storage'))   $query->where('storage', $request->storage);
+//         if ($request->filled('ram'))       $query->where('ram', $request->ram);
+//         if ($request->filled('condition')) $query->where('condition', $request->condition);
+//         if ($request->filled('color'))     $query->where('color', $request->color);
 
 //         // ---------------------------
-//         // REPAIR SERVICE FILTER (vendor table)
+//         // PRICE FILTERING USING LIKE
 //         // ---------------------------
-        
-//          $query->where('vendors.repair_service', $request->repair_service); // checkbox selected
-        
+//         $min = $request->min_price;
+//         $max = $request->max_price;
 
-//         // ---------------------------
-//         // LOCATION FILTER LOGIC
-//         // ---------------------------
-//         $userLat = $request->latitude;
-//         $userLng = $request->longitude;
-//         $radius  = $request->radius;
-//         $city    = $request->city;
+//         if ($min !== null && $min !== '') $min = trim($min);
+//         else $min = null;
 
-//         $isRadiusMode = $request->filled('radius') && $request->filled('latitude') && $request->filled('longitude');
-//         $isCityMode   = $request->filled('city');
+//         if ($max !== null && $max !== '') $max = trim($max);
+//         else $max = null;
 
-//         if ($isRadiusMode) {
-//             // RADIUS MODE → CITY IGNORE
-//             $query->select('vendor_mobiles.*', 'vendors.latitude', 'vendors.longitude', 'vendors.location')
-//                   ->selectRaw("
-//                     (6371 * acos(
-//                         cos(radians(?)) *
-//                         cos(radians(vendors.latitude)) *
-//                         cos(radians(vendors.longitude) - radians(?)) +
-//                         sin(radians(?)) *
-//                         sin(radians(vendors.latitude))
-//                     )) AS distance
-//                   ", [$userLat, $userLng, $userLat])
-//                   ->having('distance', '<=', $radius)
-//                   ->orderBy('distance');
-//         } elseif ($isCityMode) {
-//             // CITY MODE → RADIUS IGNORE
-//             $query->where('vendors.location', $city);
+//         if ($min && $max) {
+//             if ($min > $max) [$min, $max] = [$max, $min]; // swap if needed
+//             $query->where(function ($q) use ($min, $max) {
+//                 $q->whereRaw("CAST(price AS CHAR) LIKE ?", ["%$min%"])
+//                   ->orWhereRaw("CAST(price AS CHAR) LIKE ?", ["%$max%"]);
+//             });
+//         } elseif ($min) {
+//             $query->whereRaw("CAST(price AS CHAR) LIKE ?", ["%$min%"]);
+//         } elseif ($max) {
+//             $query->whereRaw("CAST(price AS CHAR) LIKE ?", ["%$max%"]);
 //         }
 
 //         // ---------------------------
-//         // OPTIONAL FILTERS (vendor_mobiles)
+//         // FETCH ALL RESULTS
 //         // ---------------------------
-//         if ($request->filled('storage'))   $query->where('vendor_mobiles.storage', $request->storage);
-//         if ($request->filled('ram'))       $query->where('vendor_mobiles.ram', $request->ram);
-//         if ($request->filled('condition')) $query->where('vendor_mobiles.condition', $request->condition);
-//         if ($request->filled('color'))     $query->where('vendor_mobiles.color', $request->color);
+//       $listings = $query->get();
+//         // ---------------------------
+//         // LOCATION LOGIC
+//         // ---------------------------
+//         $cityMode   = $request->filled('city');
+//         $radiusMode = $request->filled('latitude') && $request->filled('longitude');
 
-//         // ---------------------------
-//         // PRICE FILTERS
-//         // ---------------------------
-//         if ($request->filled('min_price') && $request->filled('max_price')) {
-//             $query->whereBetween('vendor_mobiles.price', [$request->min_price, $request->max_price]);
-//         } elseif ($request->filled('min_price')) {
-//             $query->where('vendor_mobiles.price', '>=', $request->min_price);
-//         } elseif ($request->filled('max_price')) {
-//             $query->where('vendor_mobiles.price', '<=', $request->max_price);
+//         if ($cityMode) {
+//             $city = $request->city;
+//             $listings = $listings->filter(fn($item) => ($item->location ?? null) === $city)->values();
+//         } elseif ($radiusMode) {
+//             $lat    = $request->latitude;
+//             $lng    = $request->longitude;
+//             $radius = $request->radius ?? 50;
+
+//             $listings = $listings->filter(function ($item) use ($lat, $lng, $radius) {
+//                 if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
+
+//                 $theta = $lng - $item->vendor->longitude;
+//                 $dist = sin(deg2rad($lat)) * sin(deg2rad($item->vendor->latitude)) +
+//                         cos(deg2rad($lat)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
+//                 $dist = acos($dist);
+//                 $dist = rad2deg($dist);
+//                 $miles = $dist * 60 * 1.1515;
+//                 $km = $miles * 1.609344;
+
+//                 return $km <= $radius;
+//             })->values();
 //         }
 
+// 		 $listings = $query->get();
 //         // ---------------------------
-//         // FETCH DATA
+//         // RETURN RESULTS
 //         // ---------------------------
-//         $listings = $query->get();
-
-//         // EMPTY CHECK FOR RADIUS MODE
-//         if ($isRadiusMode && $listings->isEmpty()) {
-//             return response()->json([
-//                 'status' => 'success',
-//                 'data'   => []
-//             ], 200);
-//         }
-
-//         // CITY MODE EMPTY CHECK
-//         if (!$isRadiusMode && $listings->isEmpty()) {
-//             $checkBase = VendorMobile::where('brand_id', $request->brand_id)
-//                 ->where('model_id', $request->model_id)
-//                 ->exists();
-
-//             return response()->json([
-//                 'status'  => 'not_found',
-//                 'message' => $checkBase ? 'Mobile not found' : 'No Mobile Found'
-//             ], 404);
-//         }
-
-//         // ---------------------------
-//         // FORMAT OUTPUT
-//         // ---------------------------
-//         $response = $listings->map(function ($item) {
-//             return [
-//                 'image'          => $item->image,
-//                 'title'          => $item->model->name ?? null,
-//                 'price'          => $item->price,
-//                 'shop_name'      => $item->shop_name,
-//                 'location'       => $item->vendor->location ?? null,
-//                 'latitude'       => $item->vendor->latitude ?? null,
-//                 'longitude'      => $item->vendor->longitude ?? null,
-//                 'condition'      => $item->condition,
-//             ];
-//         });
-
 //         return response()->json([
 //             'status' => 'success',
-//             'data'   => $response
+//             'data'   => $listings
 //         ], 200);
 
 //     } catch (\Exception $e) {
@@ -207,152 +180,157 @@ class MobileFilterController extends Controller
 //     }
 // }
 
+    public function getData(Request $request)
+    {
+        try {
+            // ---------------------------
+            // REQUIRED FIELDS
+            // ---------------------------
+            // if (!$request->filled('brand_id') || !$request->filled('model_id')) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'Please enter required details first'
+            //     ], 400);
+            // }
 
-public function getData(Request $request)
-{
-    try {
-        // ---------------------------
-        // REQUIRED FIELDS
-        // ---------------------------
-        if (!$request->filled('brand_id') || !$request->filled('model_id')) {
+            // ---------------------------
+            // BASE QUERY
+            // ---------------------------
+            $query = VendorMobile::with('vendor', 'model')
+                ->when($request->brand_id, function ($q) use ($request) {
+                    $q->where('brand_id', $request->brand_id);
+                })
+                ->when($request->model_id, function ($q) use ($request) {
+                    $q->where('model_id', $request->model_id);
+                })
+                ->where('status', 0);
+
+            // ---------------------------
+            // OPTIONAL FILTERS
+            // ---------------------------
+            if ($request->filled('repair_service')) {
+                $query->whereHas('vendor', function ($q) use ($request) {
+                    $q->where('repair_service', $request->repair_service);
+                });
+            }
+            if ($request->filled('storage'))   $query->where('storage', $request->storage);
+            if ($request->filled('ram'))       $query->where('ram', $request->ram);
+            if ($request->filled('condition')) $query->where('condition', $request->condition);
+            if ($request->filled('color'))     $query->where('color', $request->color);
+
+            // ---------------------------
+            // PRICE FILTER (LIKE)
+            // ---------------------------
+            // ---------------------------
+            // PRICE FILTER (BETWEEN)
+            // ---------------------------
+            if ($request->filled('min_price') && $request->filled('max_price')) {
+
+                $min = (int) $request->min_price;
+                $max = (int) $request->max_price;
+
+                if ($min > $max) {
+                    [$min, $max] = [$max, $min];
+                }
+
+                $query->whereBetween('price', [$min, $max]);
+
+            } elseif ($request->filled('min_price')) {
+
+                $query->where('price', '>=', (int) $request->min_price);
+
+            } elseif ($request->filled('max_price')) {
+
+                $query->where('price', '<=', (int) $request->max_price);
+            }
+
+
+            // ---------------------------
+            // FETCH RESULTS
+            // ---------------------------
+            $listings = $query->get();
+
+            // ---------------------------
+            // LOCATION LOGIC
+            // ---------------------------
+            $radius = null;
+            $hasCity   = $request->filled('city');
+            $hasLatLng = $request->filled('latitude') && $request->filled('longitude');
+            $hasRadius = $request->filled('radius');
+
+            $latReq = $request->latitude;
+            $lngReq = $request->longitude;
+
+            // CASE 1: City filter takes priority
+            if ($hasCity) {
+                $city = strtolower($request->city);
+                $listings = $listings->filter(function ($item) use ($city) {
+                    $vendorLocation = $item->vendor->location ?? '';
+                    // case-insensitive search
+                    return stripos($vendorLocation, $city) !== false;
+                })->values();
+            }
+            // CASE 2: Latitude/longitude with optional radius
+            elseif ($hasLatLng) {
+                $radius = $hasRadius ? $request->radius : 50; // default 50 km
+                $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
+                    if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
+
+                    $theta = $lngReq - $item->vendor->longitude;
+                    $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
+                            cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
+                    $dist = acos($dist);
+                    $dist = rad2deg($dist);
+                    $km   = $dist * 60 * 1.1515 * 1.609344;
+
+                    return $km <= $radius;
+                })->values();
+            }
+
+            // ---------------------------
+            // FORMAT RESPONSE
+            // ---------------------------
+            $formatted = $listings->map(function ($item) use ($radius, $latReq, $lngReq) {
+                $images = is_string($item->image) && is_array(json_decode($item->image, true))
+                ? json_decode($item->image, true)
+                : ($item->image ? [$item->image] : []);
+
+                $distance = null;
+                if ($radius !== null && $item->vendor?->latitude && $item->vendor?->longitude) {
+                    $theta = $lngReq - $item->vendor->longitude;
+                    $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
+                            cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
+                    $dist = acos($dist);
+                    $dist = rad2deg($dist);
+                    $distance = round($dist * 60 * 1.1515 * 1.609344, 2);
+                }
+
+                return [
+                    'id' => $item->id,
+                    "vendor"    => $item->vendor->name ?? null,
+                    'model'     => $item->model->name ?? null,
+                    'price'     => $item->price,
+                    'distance'  => round($distance) . ' km',
+                    "repair_service" => $item->vendor->	repair_service ?? null,
+                    'image'     => array_map(fn ($path) => asset($path), $images),
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'count'  => $formatted->count(),
+                'data'   => $formatted
+            ], 200);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Please enter required details first'
-            ], 400);
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        // ---------------------------
-        // BASE QUERY
-        // ---------------------------
-        $query = VendorMobile::with('vendor', 'model')
-            ->where('brand_id', $request->brand_id)
-            ->where('model_id', $request->model_id)
-            ->where('status', 0);
-
-        // ---------------------------
-        // OPTIONAL FILTERS
-        // ---------------------------
-        if ($request->filled('repair_service')) {
-            $query->whereHas('vendor', function ($q) use ($request) {
-                $q->where('repair_service', $request->repair_service);
-            });
-        }
-        if ($request->filled('storage'))   $query->where('storage', $request->storage);
-        if ($request->filled('ram'))       $query->where('ram', $request->ram);
-        if ($request->filled('condition')) $query->where('condition', $request->condition);
-        if ($request->filled('color'))     $query->where('color', $request->color);
-
-        // ---------------------------
-        // PRICE FILTER (LIKE)
-        // ---------------------------
-        // ---------------------------
-        // PRICE FILTER (BETWEEN)
-        // ---------------------------
-        if ($request->filled('min_price') && $request->filled('max_price')) {
-
-            $min = (int) $request->min_price;
-            $max = (int) $request->max_price;
-
-            if ($min > $max) {
-                [$min, $max] = [$max, $min];
-            }
-
-            $query->whereBetween('price', [$min, $max]);
-
-        } elseif ($request->filled('min_price')) {
-
-            $query->where('price', '>=', (int) $request->min_price);
-
-        } elseif ($request->filled('max_price')) {
-
-            $query->where('price', '<=', (int) $request->max_price);
-        }
-
-
-        // ---------------------------
-        // FETCH RESULTS
-        // ---------------------------
-        $listings = $query->get();
-
-        // ---------------------------
-        // LOCATION LOGIC
-        // ---------------------------
-        $radius = null;
-        $hasCity   = $request->filled('city');
-        $hasLatLng = $request->filled('latitude') && $request->filled('longitude');
-        $hasRadius = $request->filled('radius');
-
-        $latReq = $request->latitude;
-        $lngReq = $request->longitude;
-
-        // CASE 1: City filter takes priority
-        if ($hasCity) {
-            $city = strtolower($request->city);
-            $listings = $listings->filter(function ($item) use ($city) {
-                $vendorLocation = $item->vendor->location ?? '';
-                // case-insensitive search
-                return stripos($vendorLocation, $city) !== false;
-            })->values();
-        }
-        // CASE 2: Latitude/longitude with optional radius
-        elseif ($hasLatLng) {
-            $radius = $hasRadius ? $request->radius : 50; // default 50 km
-            $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
-                if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
-
-                $theta = $lngReq - $item->vendor->longitude;
-                $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
-                        cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
-                $dist = acos($dist);
-                $dist = rad2deg($dist);
-                $km   = $dist * 60 * 1.1515 * 1.609344;
-
-                return $km <= $radius;
-            })->values();
-        }
-
-        // ---------------------------
-        // FORMAT RESPONSE
-        // ---------------------------
-        $formatted = $listings->map(function ($item) use ($radius, $latReq, $lngReq) {
-            $images = is_string($item->image) && is_array(json_decode($item->image, true))
-            ? json_decode($item->image, true)
-            : ($item->image ? [$item->image] : []);
-            $distance = null;
-            if ($radius !== null && $item->vendor?->latitude && $item->vendor?->longitude) {
-                $theta = $lngReq - $item->vendor->longitude;
-                $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
-                        cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
-                $dist = acos($dist);
-                $dist = rad2deg($dist);
-                $distance = round($dist * 60 * 1.1515 * 1.609344, 2);
-            }
-
-            return [
-                'id' => $item->id,
-                "vendor"    => $item->vendor->name ?? null,
-                'model'     => $item->model->name ?? null,
-                'price'     => $item->price,
-                'distance'  => round($distance) . ' km',
-				"repair_service" => $item->vendor->	repair_service ?? null,
-                'image'     => array_map(fn ($path) => asset($path), $images),
-            ];
-        });
-
-        return response()->json([
-            'status' => 'success',
-            'count'  => $formatted->count(),
-            'data'   => $formatted
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
     }
-   
-}
+
+
 
 public function getMinMaxPrice()
 {
@@ -377,6 +355,8 @@ public function getMinMaxPrice()
         ], 500);
     }
 }
+
+
 
 
 

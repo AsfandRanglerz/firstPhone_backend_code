@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function __construct(HomeRepositoryInterface $homeRepository)
     {
         $this->homeRepository = $homeRepository;
-    }   
+    }
 
     // public function homeScreen(Request $request)
     // {
@@ -25,6 +25,16 @@ class HomeController extends Controller
     //         return ResponseHelper::error($e->getMessage(), 'An error occurred while retrieving home screen data', 'error', 500);
     //     }
     // }
+
+    public function allVendors()
+    {
+        try {
+            $data = Vendor::select('id', 'name', 'email', 'phone', 'address')->latest()->get();
+            return ResponseHelper::success($data, 'Vendors retrieved successfully', null, 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 'An error occurred while retrieving vendors', 'error', 500);
+        }
+    }
 
     public function getNearbyListings(Request $request)
     {

@@ -29,10 +29,12 @@ class SendNotificationJob implements ShouldQueue
 
     public function handle(): void
     {
+        Log::info($this->data);
         $notification = Notification::create([
             'user_type' => $this->data['user_type'],
             'title' => $this->data['title'],
             'description' => $this->data['description'],
+            'sent_by' => $this->data['sent_by'],
         ]);
 
         foreach ($this->userIds as $user) {

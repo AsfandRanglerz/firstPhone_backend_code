@@ -84,16 +84,16 @@
                                         </button>
                                     </form>
                                 @endif
-                                <table class="table responsive" id="table_id_events">
+                                <table class="table" id="table_id_events">
                                     <thead>
                                         <tr>
                                             <th>Sr.</th>
+                                            <th>Date & Time</th>
                                             <th>User Type</th>
                                             <th>Users</th>
                                             {{-- <th>Image</th> --}}
                                             <th>Title</th>
                                             <th>Message</th>
-                                            <th>Created At</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -101,6 +101,7 @@
                                         @foreach ($notifications as $notification)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $notification->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</td>
                                                 <td>{{ ucfirst($notification->user_type) }}</td>
                                                 <td>
                                                     @php
@@ -170,8 +171,6 @@
                                                         </div>
                                                     @endif
                                                 </td>
-
-                                                <td>{{ $notification->created_at->format('d M Y') }}</td>
                                                 <td>
                                                     @if (Auth::guard('admin')->check() ||
                                                             ($sideMenuPermissions->has('Notifications') && $sideMenuPermissions['Notifications']->contains('delete')))

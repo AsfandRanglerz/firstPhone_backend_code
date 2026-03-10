@@ -1,30 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\Api\FaqController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Admin\SeoController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\SideMenueController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\Api\MobileCartController;
-use App\Http\Controllers\Api\RequestFormController;
-use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\CustomerMobileListingController;
+use App\Http\Controllers\Api\DeleteAccountController;
+use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\FilterMobileController;
+use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\MobileCartController;
 use App\Http\Controllers\Api\MobileFilterController;
+use App\Http\Controllers\Api\MobileListingController;
 use App\Http\Controllers\Api\MobileSearchController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\DeleteAccountController;
-use App\Http\Controllers\Api\MobileListingController;
 use App\Http\Controllers\Api\OnlinePaymentController;
-use App\Http\Controllers\SideMenuPermissionController;
-use App\Http\Controllers\Api\VendorSubscriptionController;
-use App\Http\Controllers\Api\VendorMobileListingController;
-use App\Http\Controllers\Api\CustomerMobileListingController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\RequestFormController;
+use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\VendorMobileListingController;
+use App\Http\Controllers\Api\VendorSubscriptionController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SideMenueController;
+use App\Http\Controllers\SideMenuPermissionController;
+use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -46,6 +46,11 @@ Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
 Route::post('/payment/ipn-listener', [PaymentController::class, 'ipnListener']);
 
+Route::post('/payment/create', [PaymentController::class,'createPayment']);
+Route::get('/payment/webview/{amount}/', [PaymentController::class,'webview']);
+Route::get('/payment/return', [PaymentController::class,'returnUrl']);
+Route::post('/update-payment-status', [PaymentController::class,'ipnListener']);
+Route::get('/payment/verify/{reference}', [PaymentController::class,'verifyPayment']);
 
 
 Route::post('/roles', [RoleController::class, 'store']);
@@ -55,6 +60,9 @@ Route::post('/permission-insert', [SideMenuPermissionController::class, 'assignP
 Route::post('/seo-bulk', [SeoController::class, 'storeBulk'])
     ->name('seo.bulk-update');
 
+Route::get('/vendors', [HomeController::class, 'allVendors']);
+//Chat Images API
+Route::post('/chat-images', [ChatController::class, 'chatImages']);
 // Auth APIs
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -91,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/{notificationId}/seen', [NotificationController::class, 'seenNotification']);
     Route::delete('/delete-notification', [NotificationController::class, 'deleteAllNotifications']);
+    Route::post('/chat', [NotificationController::class, 'Chat']);
     // Mobile Request API
     Route::get('/getrequestedmobile', [RequestFormController::class, 'getRequestedMobile']);
     Route::post('/mobilerequestform', [RequestFormController::class, 'mobilerequestform']);
@@ -170,7 +179,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Get vendor order list api
      Route::get('/vendor-orderlist/{orderId}', [OrderController::class, 'vendorOrderList']);
-
 
 });
 
