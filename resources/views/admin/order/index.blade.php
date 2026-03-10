@@ -2,6 +2,25 @@
 @section('title', 'Orders')
 
 @section('content')
+<style>
+    .paid-unpaid-btn{
+        padding: 0.4rem 1rem;
+        
+    }
+    .paid-unpaid-btn:hover,
+.paid-unpaid-btn:focus,
+.paid-unpaid-btn:active {
+    background-color: unset !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+button.bg-success:hover{
+    background-color: #54ca68 !important;
+}
+button.bg-warning:hover{
+    background-color:#ffa426 !important;
+}
+</style>
     <div class="main-content" style="min-height: 562px;">
         <section class="section">
             <div class="section-body">
@@ -61,11 +80,11 @@
                                             {{-- <th>Shipping Address</th> --}}
                                             <th>Buy From</th>
                                             <th>Product</th>
-                                            <th>Price</th>
+                                            <th>Price (PKR)</th>
                                             <th>Payment Status</th>
                                             <th>Delivery Method</th>
                                             <th>Order Status</th>
-                                            <th>Actions</th>
+                                            {{-- <th>Actions</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -111,30 +130,16 @@
                                                 <td>
                                                     @php
                                                         $paymentColors = [
-                                                            'paid' => 'btn-primary',
+                                                            'paid' => 'btn-success',
                                                             'unpaid' => 'btn-warning',
                                                             // 'unpaid' => 'btn-secondary',
                                                         ];
                                                     @endphp
 
-                                                    <div class="dropdown">
                                                         <button
-                                                            class="btn btn-sm dropdown-toggle {{ $paymentColors[$order->payment_status] ?? 'btn-light' }}"
-                                                            type="button" id="paymentBtn-{{ $order->id }}"
-                                                            data-toggle="dropdown">
-                                                            {{ ucfirst($order->payment_status) }}
+                                                            class="badge border-0 paid-unpaid-btn {{ str_replace('btn', 'bg', $paymentColors[$order->payment_status] ?? 'btn-light') }}" >
+                                                            {{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}
                                                         </button>
-                                                        <div class="dropdown-menu">
-                                                            @foreach (['paid', 'unpaid'] as $status)
-                                                                <button type="button"
-                                                                    class="dropdown-item change-payment-status"
-                                                                    data-order-id="{{ $order->id }}"
-                                                                    data-new-status="{{ $status }}">
-                                                                    {{ ucfirst($status) }}
-                                                                </button>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
                                                 </td>
 
                                                 <td>
@@ -179,7 +184,7 @@
                                                     </span>
                                                 </td>
 
-                                                <td>
+                                                {{-- <td>
                                                     @if (Auth::guard('admin')->check() ||
                                                             ($sideMenuPermissions->has('Orders') && $sideMenuPermissions['Orders']->contains('delete')))
                                                         <form id="delete-form-{{ $order->id }}"
@@ -194,7 +199,7 @@
                                                             <span><i class="fa fa-trash"></i></span>
                                                         </button>
                                                     @endif
-                                                </td>
+                                                </td> --}}
                                             </tr>
                                         @endforeach
                                     </tbody>

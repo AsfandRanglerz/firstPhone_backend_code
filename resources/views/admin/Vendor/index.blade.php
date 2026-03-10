@@ -12,11 +12,17 @@
                                 <h4>Vendors</h4>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
+                                <div class="d-flex justify-content-between mb-3">
                                 @if (Auth::guard('admin')->check() ||
                                         ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('create')))
                                     <a class="btn btn-primary mb-3 text-white"
                                         href="{{ url('/admin/vendor-create') }}">Create</a>
                                 @endif
+                                <div>
+                                    <button class="btn btn-info" id="selectAllBtn">Select All</button>
+                                    <button class="btn btn-danger" id="deleteAllBtn">Delete All</button>
+                                </div>
+                                </div>
 
                                 {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('users') && $sideMenuPermissions['users']->contains('view')))
                                     <a class="btn btn-primary mb-3 text-white" href="{{ url('admin/users/trashed') }}">View
@@ -26,6 +32,7 @@
                                 <table class="table responsive" id="table_id_events">
                                     <thead>
                                         <tr>
+                                            <th><input type="checkbox" id="selectAllCheckbox"></th>
                                             <th>Sr.</th>
                                             <th>Name</th>
                                             <th>Email</th>
@@ -41,6 +48,9 @@
                                     <tbody>
                                         @foreach ($users as $user)
                                             <tr>
+                                                <td>
+                                                    <input type="checkbox" class="user-checkbox" value="{{ $user->id }}">
+                                                </td>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $user->name }}</td>
                                                 <td>
@@ -394,5 +404,6 @@
         });
     });
 </script>
+
 
 @endsection

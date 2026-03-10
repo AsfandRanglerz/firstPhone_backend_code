@@ -155,20 +155,20 @@ public function Chat(Request $request)
 
         /* ---------------- CREATE NOTIFICATION ---------------- */
 
-        $notification = Notification::create([
-            'user_type'   => $senderType,
-            'title'       => $request->title,
-            'description' => $request->body,
-            'image'       => $sender->image ?? null,
-        ]);
+        // $notification = Notification::create([
+        //     'user_type'   => $senderType,
+        //     'title'       => $request->title,
+        //     'description' => $request->body,
+        //     'image'       => $sender->image ?? null,
+        // ]);
 
         /* ---------------- CREATE TARGET ---------------- */
 
-        NotificationTarget::create([
-            'notification_id' => $notification->id,
-            'targetable_id'    => $receiver->id,
-            'targetable_type'  => $targetType,
-        ]);
+        // NotificationTarget::create([
+        //     'notification_id' => $notification->id,
+        //     'targetable_id'    => $receiver->id,
+        //     'targetable_type'  => $targetType,
+        // ]);
 
         /* ---------------- SEND PUSH ---------------- */
 

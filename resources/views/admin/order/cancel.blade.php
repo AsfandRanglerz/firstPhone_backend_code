@@ -2,6 +2,12 @@
 @section('title', 'Cancel Orders')
 
 @section('content')
+<style>
+    .btn.btn-success {
+    padding: 0.4rem 0.9rem !important;
+    font-size: 12px !important;
+}
+</style>
     <div class="main-content" style="min-height: 562px;">
         <section class="section">
             <div class="section-body">
@@ -16,11 +22,13 @@
                                     <thead>
                                         <tr>
                                             <th>Sr.</th>
+                                            <th>Date & Time</th>
                                             <th>Order Number</th>
                                             <th>Order Item</th>
                                             <th>Vendor</th>
                                             <th>Reason</th>
                                             <th>Delivery Method</th>
+                                            <th>Proof</th>
                                             <th>Status</th>
                                             <th>Action</th>
                                         </tr>
@@ -29,6 +37,7 @@
                                         @foreach ($cancelOrders as $index => $cancelOrder)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
+                                                <td>{{ $cancelOrder->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</td>
                                                 <td>#{{ $cancelOrder->order->order_number ?? '-' }}</td>
                                                 <td>
                                                     {{ $cancelOrder->orderItem->product->brand->name ?? '-' }} -
@@ -48,6 +57,16 @@
                                                             class="badge badge-secondary">{{ ucfirst($cancelOrder->order->delivery_method) }}</span>
                                                     @endif
                                                 </td>
+                                                 <td>
+                                                    @if ($cancelOrder->proof_file_image)
+                                                        <button class="btn btn-sm btn-info view-proof"
+                                                            data-front="{{ asset('public/'.$cancelOrder->proof_file_image) }}" title="View Proof">
+                                                            <span class="btn-text">View</span>
+                                                        </button>
+                                                    @else
+                                                        <span class="text-muted">No Proof</span>
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     @php
                                                         $statusColors = [
@@ -57,26 +76,58 @@
                                                         ];
                                                     @endphp
 
-                                                    <div class="dropdown">
-                                                        <button
-                                                            class="btn btn-sm dropdown-toggle {{ $statusColors[$cancelOrder->status] ?? 'btn-light' }}"
-                                                            type="button" id="cancelStatusBtn-{{ $cancelOrder->id }}"
-                                                            data-toggle="dropdown">
-                                                            {{ ucfirst($cancelOrder->status) }}
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            @foreach (['requested', 'approved', 'rejected'] as $status)
-                                                                @if ($status !== $cancelOrder->status)
+                                                    {{-- If status is approved, show badge only --}}
+                                                    @if ($cancelOrder->status === 'approved')
+
+                                                        <span class="btn btn-success btn-lg" disabled>
+                                                            Approved
+                                                        </span>
+
+                                                    @else
+
+                                                        <div class="dropdown">
+                                                            <button
+                                                                class="btn btn-sm dropdown-toggle {{ $statusColors[$cancelOrder->status] ?? 'btn-light' }}"
+                                                                type="button"
+                                                                data-toggle="dropdown">
+                                                                {{ ucfirst($cancelOrder->status) }}
+                                                            </button>
+
+                                                            <div class="dropdown-menu">
+
+                                                                {{-- If status = requested → show both options --}}
+                                                                @if ($cancelOrder->status === 'requested')
+
                                                                     <button type="button"
                                                                         class="dropdown-item change-cancel-status"
                                                                         data-id="{{ $cancelOrder->id }}"
-                                                                        data-new-status="{{ $status }}">
-                                                                        {{ ucfirst($status) }}
+                                                                        data-new-status="approved">
+                                                                        Approved
                                                                     </button>
+
+                                                                    <button type="button"
+                                                                        class="dropdown-item change-cancel-status"
+                                                                        data-id="{{ $cancelOrder->id }}"
+                                                                        data-new-status="rejected">
+                                                                        Rejected
+                                                                    </button>
+
+                                                                {{-- If status = rejected → show only approved --}}
+                                                                @elseif ($cancelOrder->status === 'rejected')
+
+                                                                    <button type="button"
+                                                                        class="dropdown-item change-cancel-status"
+                                                                        data-id="{{ $cancelOrder->id }}"
+                                                                        data-new-status="approved">
+                                                                        Approved
+                                                                    </button>
+
                                                                 @endif
-                                                            @endforeach
+
+                                                            </div>
                                                         </div>
-                                                    </div>
+
+                                                    @endif
                                                 </td>
 
                                                 <td>
@@ -113,7 +164,7 @@
                 <input type="hidden" name="cancel_order_id" id="cancel_order_id">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="approveFileModalLabel">Upload Proof File</h5>
+                        <h5 class="modal-title" id="approveFileModalLabel">Upload Transaction Proof</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span>&times;</span>
                         </button>
@@ -126,6 +177,19 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="modal fade" id="proofModal" tabindex="-1" aria-labelledby="proofModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="proofModalLabel">Proof</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="proofImage" src="" class="img-fluid" alt="Proof Image">
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -236,6 +300,13 @@
                 });
             }
 
+        });
+
+        // ===== View Proof =====
+        $(document).on('click', '.view-proof', function() {
+            const front = $(this).data('front');
+            $('#proofImage').attr('src', front).show();
+            $('#proofModal').modal('show');
         });
     </script>
 @endsection

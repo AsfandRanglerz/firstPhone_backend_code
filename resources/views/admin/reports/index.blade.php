@@ -8,7 +8,6 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Top Products</h4>
 
                             {{-- Totals Row --}}
                             <div class="row mt-3 w-100">
@@ -31,7 +30,7 @@
                                 <div class="col-md-3">
                                     <div class="card shadow border-0 text-white mb-0">
                                         <div class="card-body py-2">
-                                            <h6 class="mb-1">Total Revenue</h6>
+                                            <h6 class="mb-1">Total Earnings</h6>
                                             <h6 class="mb-0 fw-bold">
                                                 Rs {{ number_format($topProducts->sum(fn($p) => (float) $p->revenue), 2) }}
                                             </h6>
@@ -79,7 +78,7 @@
                                         <th>Brand / Model</th>
                                         <th>Vendor</th>
                                         <th>Quantity Sold</th>
-                                        <th>Revenue</th>
+                                        <th>Earnings</th>
                                     </tr>
                                 </thead>
                                 <tbody id="reportTableBody">

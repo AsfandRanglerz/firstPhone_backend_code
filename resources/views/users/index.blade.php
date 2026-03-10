@@ -20,7 +20,6 @@
                                 @endif
                                 <div>
                                     <button class="btn btn-info" id="selectAllBtn">Select All</button>
-                                    {{-- <button class="btn btn-danger" id="deleteSelectedBtn">Delete Selected</button> --}}
                                     <button class="btn btn-danger" id="deleteAllBtn">Delete All</button>
                                 </div>
                                 </div>
@@ -33,6 +32,7 @@
                                 <table class="table responsive" id="table_id_events">
                                     <thead>
                                         <tr>
+                                            <th><input type="checkbox" id="selectAllCheckbox"></th>
                                             <th>Sr.</th>
                                             <th>Name</th>
                                             <th>Email</th>
@@ -45,6 +45,9 @@
                                     <tbody>
                                         @foreach ($users as $user)
                                             <tr>
+                                                <td>
+                                                    <input type="checkbox" class="user-checkbox" value="{{ $user->id }}">
+                                                </td>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $user->name }}</td>
                                                 <td>
@@ -236,4 +239,73 @@
     }
 });
     </script>
+    <script>
+
+document.getElementById('selectAllCheckbox').addEventListener('change', function() {
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.checked = this.checked;
+    });
+});
+
+document.getElementById('selectAllBtn').addEventListener('click', function(){
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.checked = true;
+    });
+});
+
+// DELETE ALL
+$('#deleteAllBtn').click(function(){
+
+    let ids = [];
+
+    $('.user-checkbox:checked').each(function(){
+        ids.push($(this).val());
+    });
+
+    if(ids.length === 0){
+        swal({
+            title: "No users selected",
+            text: "Please select users to delete",
+            icon: "warning"
+        });
+        return;
+    }
+
+    swal({
+        title: "Delete Selected Users?",
+        text: "This action cannot be undone!",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    }).then((willDelete)=>{
+
+        if(willDelete){
+
+            $.ajax({
+                url:"{{ url('/admin/delete-selected-users') }}",
+                type:"POST",
+                data:{
+                    _token:"{{ csrf_token() }}",
+                    ids:ids
+                },
+                success:function(){
+
+                    swal({
+                        title: "Deleted!",
+                        text: "Selected users deleted successfully.",
+                        icon: "success"
+                    }).then(()=>{
+                        location.reload();
+                    });
+
+                }
+            });
+
+        }
+
+    });
+
+});
+
+</script>
 @endsection

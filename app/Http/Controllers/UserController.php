@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerRequest;
+use App\Models\User;
+use App\Models\UserRolePermission;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\UserRolePermission;
 
 class UserController extends Controller
 {
@@ -95,4 +96,18 @@ class UserController extends Controller
         $deleted = $this->userService->deleteUser($id);
         return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Customer Deleted Successfully' : 'User not found');
     }
+
+    public function deleteSelected(Request $request)
+{
+    User::whereIn('id',$request->ids)->delete();
+
+    return response()->json(['success'=>true]);
+}
+
+public function deleteAll()
+{
+    User::truncate();
+
+    return response()->json(['success'=>true]);
+}
 }

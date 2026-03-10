@@ -95,6 +95,8 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::delete('/users-destory/{id}', 'delete')->name('user.delete')->middleware('check.permission:Users,delete');
         Route::delete('/users/{id}/force', 'forceDelete')->name('user.forceDelete')->middleware('check.permission:Users,delete');
         Route::post('/users/toggle-status', 'toggleStatus')->name('user.toggle-status');
+        Route::post('/delete-selected-users', 'deleteSelected');
+        Route::post('/delete-all-users', 'deleteAll');
     });
 
 
