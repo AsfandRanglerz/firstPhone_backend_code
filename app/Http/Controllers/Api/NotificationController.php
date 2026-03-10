@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\NotificationHelper;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\NotificationTarget;
+use App\Models\User;
+use App\Models\Vendor;
 use App\Repositories\Api\Interfaces\NotificationRepoInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
@@ -118,7 +123,89 @@ public function deleteAllNotifications()
 }
 
 
+public function Chat(Request $request)
+{
+    try {
 
+        DB::beginTransaction();
+
+        /* ---------------- AUTHENTICATED SENDER ---------------- */
+
+        $sender = $sender = auth()->guard('vendors')->user() ?? auth()->user();
+
+        if (!$sender) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $senderType = $sender instanceof Vendor ? 'vendor' : 'customer';
+
+        /* ---------------- FIND RECEIVER ---------------- */
+
+        if ($request->receiver_type === 'user') {
+            $receiver = User::find($request->receiver_id);
+            $targetType = User::class;
+        } else {
+            $receiver = Vendor::find($request->receiver_id);
+            $targetType = Vendor::class;
+        }
+
+        if (!$receiver) {
+            return response()->json(['error' => 'Receiver not found'], 404);
+        }
+
+        /* ---------------- CREATE NOTIFICATION ---------------- */
+
+        $notification = Notification::create([
+            'user_type'   => $senderType,
+            'title'       => $request->title,
+            'description' => $request->body,
+            'image'       => $sender->image ?? null,
+        ]);
+
+        /* ---------------- CREATE TARGET ---------------- */
+
+        NotificationTarget::create([
+            'notification_id' => $notification->id,
+            'targetable_id'    => $receiver->id,
+            'targetable_type'  => $targetType,
+        ]);
+
+        /* ---------------- SEND PUSH ---------------- */
+
+        if (!empty($receiver->fcm_token)) {
+
+            $data = [
+                'chat_id' => $request->chat_id,
+                'sender_id' => $sender->id,
+                'sender_type' => $senderType,
+                'receiver_id' => $receiver->id,
+                'receiver_type' => $request->receiver_type,
+                'type' => 'chat'
+            ];
+
+            NotificationHelper::sendFcmNotification(
+                $receiver->fcm_token,
+                $request->title,
+                $request->body,
+                $data
+            );
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Chat notification sent successfully.'
+        ]);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 400);
+    }
+}
 
 
 }
