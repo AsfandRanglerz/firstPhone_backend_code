@@ -174,26 +174,9 @@
                                                 @endphp
 
                                                 <td>
-                                                    <div class="dropdown">
-                                                        <button
-                                                            class="btn btn-sm dropdown-toggle {{ $statusColors[$order->order_status] ?? 'btn-light' }}"
-                                                            type="button" data-toggle="dropdown"
-                                                            id="statusBtn-{{ $order->id }}">
-                                                            {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            @foreach (['inprogress', 'shipped', 'delivered', 'cancelled'] as $status)
-                                                                @if ($status !== $order->order_status)
-                                                                    <button type="button"
-                                                                        class="dropdown-item change-order-status"
-                                                                        data-order-id="{{ $order->id }}"
-                                                                        data-new-status="{{ $status }}">
-                                                                        {{ ucfirst(str_replace('_', ' ', $status)) }}
-                                                                    </button>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
+                                                   <span class="badge {{ str_replace('btn', 'bg', $statusColors[$order->order_status] ?? 'btn-light') }}">
+                                                        {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
+                                                    </span>
                                                 </td>
 
                                                 <td>

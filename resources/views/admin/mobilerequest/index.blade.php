@@ -53,8 +53,8 @@
                                                     </a>
                                                 </td>
                                                 <td>{{ $mobilerequest->location }}</td>
-                                                <td>{{ $mobilerequest->brand->name }}</td>
-                                                <td>{{ $mobilerequest->model->name }}</td>
+                                                <td>{{ $mobilerequest->brand->name ?? 'N/A' }}</td>
+                                                <td>{{ $mobilerequest->model->name  ?? 'N/A' }}</td>
                                                 <td>
                                                     @if ($mobilerequest->min_price)
                                                         {{ number_format($mobilerequest->min_price, 0) }}
