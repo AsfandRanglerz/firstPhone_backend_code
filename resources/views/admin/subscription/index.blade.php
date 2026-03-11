@@ -6,12 +6,10 @@
         <section class="section">
             <div class="section-body">
                 <div class="row">
-                    <div class="col-12 col-md-12 col-lg-12">
+                    <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <div class="col-12">
                                     <h4>Subscription Plans</h4>
-                                </div>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
                                 <div class="clearfix">
@@ -28,7 +26,6 @@
                                 <table class="table responsive" id="table_id_events">
                                     <thead>
                                         <tr>
-                                            <th></th>
                                             <th>Sr.</th>
                                             <th>Name</th>
                                             <th>Price</th>
@@ -42,7 +39,6 @@
                                     <tbody id="sortable-faqs">
                                         @foreach ($subscriptionPlans as $key => $plan)
                                             <tr>
-                                                <td></td>
                                                 <td>{{ $key + 1 }}</td>
                                                 <td>{{ $plan->name }}</td>
                                                 <td>{{ (int) $plan->price }}</td>

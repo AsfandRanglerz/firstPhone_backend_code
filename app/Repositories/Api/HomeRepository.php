@@ -12,6 +12,81 @@ use App\Repositories\Api\Interfaces\HomeRepositoryInterface;
 class HomeRepository implements HomeRepositoryInterface
 {
      
+    public function getNearbyListings($request)
+    {
+        $customerLat = $request->query('latitude');
+        $customerLng = $request->query('longitude');
+
+        if (!$customerLat || !$customerLng) {
+            throw new \Exception('Latitude and Longitude are required to fetch nearby listings');
+        }
+
+        $radius = $request->query('radius', 50);
+        $search = $request->query('search');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = VendorMobile::with(['brand', 'model', 'vendor'])
+            // ->where('status', 0)
+            ->join('vendors', 'vendor_mobiles.vendor_id', '=', 'vendors.id')
+            ->select(
+                'vendor_mobiles.id',
+                'vendor_mobiles.vendor_id',
+                'vendor_mobiles.brand_id',
+                'vendor_mobiles.model_id',
+                'vendor_mobiles.price',
+                'vendor_mobiles.image',
+                'vendor_mobiles.stock',
+                'vendor_mobiles.location',
+                'vendors.latitude',
+                'vendors.longitude',
+                'vendors.repair_service',
+            )
+            ->selectRaw("
+                (6371 * acos(
+                    cos(radians(?)) * cos(radians(vendors.latitude)) *
+                    cos(radians(vendors.longitude) - radians(?)) +
+                    sin(radians(?)) * sin(radians(vendors.latitude))
+                )) AS distance
+            ", [$customerLat, $customerLng, $customerLat])
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance', 'asc')
+            ->where('vendor_mobiles.status', 0)
+            ->where('vendor_mobiles.stock', '>', 0);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('vendor_mobiles.price', 'LIKE', "%{$search}%")
+                ->orWhere('vendor_mobiles.location', 'LIKE', "%{$search}%")
+                ->orWhere('vendor_mobiles.storage', 'LIKE', "%{$search}%")
+                ->orWhere('vendor_mobiles.ram', 'LIKE', "%{$search}%")
+                ->orWhereHas('model', fn($m) => $m->where('name', 'LIKE', "%{$search}%"));
+            });
+        }
+
+        if (!empty($startDate) && !empty($endDate)) {
+            $query->whereBetween('vendor_mobiles.created_at', [$startDate, $endDate]);
+        }
+
+        return $query->get()->map(function ($listing) {
+            $images = json_decode($listing->image, true) ?? [];
+
+            return [
+                'id'             => $listing->id,
+                // 'vendor'         => $listing->vendor?->name,
+                'vendor_id'     => $listing->vendor?->id,
+                'vendor_name'   => $listing->vendor?->name,
+                'vendor_image'  => $listing->vendor?->image,
+                'vendor_phone'  => $listing->vendor?->phone,
+                'brand'         => $listing->brand?->name,
+                'model'          => $listing->model?->name,
+                'price'          => $listing->price,
+                'distance'       => round($listing->distance, 1) . ' km',
+                'repair_service' => $listing->vendor?->repair_service,
+                'image'          => isset($images[0]) ? asset($images[0]) : null,
+            ];
+        });
+    }
 
     public function getTopSellingListings($request)
     {
@@ -26,7 +101,7 @@ class HomeRepository implements HomeRepositoryInterface
         // Radius default 50
         $radius = $request->query('radius', 50);
 
-        $query = OrderItem::with(['product.model', 'product.vendor', 'order'])
+        $query = OrderItem::with(['product.brand', 'product.model', 'product.vendor', 'order'])
             ->whereHas('order', fn($q) => $q->where('order_status', 'delivered'))
             ->whereHas('product', fn($q) => $q->where('stock', '>', 0));
 
@@ -97,6 +172,7 @@ class HomeRepository implements HomeRepositoryInterface
                     'vendor_name'   => $product->vendor?->name,
                     'vendor_image'  => $product->vendor?->image,
                     'vendor_phone'  => $product->vendor?->phone,
+                    'brand'         => $product->brand?->name,
                     'model'         => $product->model?->name,
                     'price'         => $product->price,
                     'image'         => isset($images[0]) ? asset($images[0]) : null,

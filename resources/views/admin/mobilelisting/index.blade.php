@@ -26,10 +26,10 @@
                                             <th>Location</th>
                                             <th>Brand</th>
                                             <th>Model</th>
+                                            <th>RAM </th>
                                             <th>ROM </th>
                                             <th>Price (PKR)</th>
                                             <th>Condition</th>
-                                            <th>RAM </th>
                                             <th>About</th>
                                             <th>Status</th>
                                             <th>Images/Videos</th>
@@ -67,11 +67,18 @@
                                                         <span class="text-muted">No Model</span>
                                                     @endif
                                                 </td>
+                                                 <td>
+                                                    @if ($mobile->ram)
+                                                        {{ $mobile->ram }}
+                                                    @else
+                                                        <span class="text-muted">No RAM</span>
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     @if ($mobile->storage)
                                                         {{ $mobile->storage }}
                                                     @else
-                                                        <span class="text-muted">No Storage</span>
+                                                        <span class="text-muted">No ROM</span>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -88,14 +95,6 @@
                                                         <span class="text-muted">No Condition</span>
                                                     @endif
                                                 </td>
-                                                <td>
-                                                    @if ($mobile->ram)
-                                                        {{ $mobile->ram }}
-                                                    @else
-                                                        <span class="text-muted">No RAM</span>
-                                                    @endif
-                                                </td>
-
                                                 <td>{{ $mobile->about }}</td>
                                                 <td>
                                                     @php
@@ -108,53 +107,57 @@
                                                         };
 
                                                         $buttonClass = match ($status) {
-                                                            0 => 'btn btn-primary',
+                                                            0 => 'btn-success',
                                                             1 => 'btn-danger',
                                                             2 => 'btn-warning',
                                                             default => 'btn-secondary',
                                                         };
                                                     @endphp
 
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm dropdown-toggle {{ $buttonClass }}"
-                                                            type="button" data-toggle="dropdown">
+                                                    @if ($status == 0)
+                                                        {{-- Approved → Disabled Button --}}
+                                                        <button class="btn btn-sm {{ $buttonClass }}" >
                                                             {{ $statusText }}
                                                         </button>
 
-                                                        <div class="dropdown-menu">
-                                                            @if ($status == 0)
-                                                                {{-- Show only Reject --}}
-                                                                <form method="POST"
-                                                                    action="{{ route('mobilelisting.reject', $mobile->id) }}">
-                                                                    @csrf
-                                                                    <button type="submit"
-                                                                        class="dropdown-item text-danger">Reject</button>
-                                                                </form>
-                                                            @elseif ($status == 1)
-                                                                {{-- Show only Approve --}}
-                                                                <form method="POST"
-                                                                    action="{{ route('mobilelisting.approve', $mobile->id) }}">
-                                                                    @csrf
-                                                                    <button type="submit"
-                                                                        class="dropdown-item text-success">Approve</button>
-                                                                </form>
-                                                            @elseif ($status == 2)
-                                                                {{-- Show both Approve and Reject --}}
-                                                                <form method="POST"
-                                                                    action="{{ route('mobilelisting.approve', $mobile->id) }}">
-                                                                    @csrf
-                                                                    <button type="submit"
-                                                                        class="dropdown-item text-success">Approve</button>
-                                                                </form>
-                                                                <form method="POST"
-                                                                    action="{{ route('mobilelisting.reject', $mobile->id) }}">
-                                                                    @csrf
-                                                                    <button type="submit"
-                                                                        class="dropdown-item text-danger">Reject</button>
-                                                                </form>
-                                                            @endif
+                                                    @else
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm dropdown-toggle {{ $buttonClass }}"
+                                                                type="button" data-toggle="dropdown">
+                                                                {{ $statusText }}
+                                                            </button>
+
+                                                            <div class="dropdown-menu">
+
+                                                                @if ($status == 1)
+                                                                    {{-- Rejected → Only Approve --}}
+                                                                    <form method="POST" action="{{ route('mobilelisting.approve', $mobile->id) }}">
+                                                                        @csrf
+                                                                        <button type="submit" class="dropdown-item text-success">
+                                                                            Approve
+                                                                        </button>
+                                                                    </form>
+
+                                                                @elseif ($status == 2)
+                                                                    {{-- Pending → Approve + Reject --}}
+                                                                    <form method="POST" action="{{ route('mobilelisting.approve', $mobile->id) }}">
+                                                                        @csrf
+                                                                        <button type="submit" class="dropdown-item text-success">
+                                                                            Approve
+                                                                        </button>
+                                                                    </form>
+
+                                                                    <form method="POST" action="{{ route('mobilelisting.reject', $mobile->id) }}">
+                                                                        @csrf
+                                                                        <button type="submit" class="dropdown-item text-danger">
+                                                                            Reject
+                                                                        </button>
+                                                                    </form>
+                                                                @endif
+
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <a class="btn btn-primary ml-3"

@@ -27,6 +27,11 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($models as $model)
+                                        @php
+                                            $existModel = in_array($model->id, $modelUsedInRequests) || 
+                                                          in_array($model->name, $modelUsedInListings) || 
+                                                          in_array($model->id, $modelUsedInVendorMobiles);
+                                        @endphp
                                             <tr id="brand-row-{{ $model->id }}">
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td class="brand-name">
@@ -39,10 +44,20 @@
                                                             data-name="{{ is_array($model->name) ? implode(', ', $model->name) : $model->name }}">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
+                                                        @if (!$existModel)
                                                         <button class="btn deleteBrand" style="background-color: #009245;"
                                                             data-id="{{ $model->id }}">
                                                             <i class="fa fa-trash"></i>
                                                         </button>
+                                                         @else
+
+                                                            <button class="btn" style="background-color: #009245;"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#canNotDeleteModal">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+
+                                                         @endif
                                                     </div>
                                                 </td>
                                             </tr>
@@ -107,6 +122,19 @@
             </form>
         </div>
     </div>
+    <div class="modal fade" id="canNotDeleteModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                        <div class="modal-body">
+                            {{__('You can not delete this model. Because there are one or more mobile requests, customer mobiles, or vendor mobiles created of this model.')}}
+                        </div>
+
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{__('Close')}}</button>
+                  </div>
+              </div>
+          </div>
+      </div>
 @endsection
 
 @section('js')

@@ -222,7 +222,7 @@
             });
 
             // Cancel Order Status Change
-            $('.change-cancel-status').on('click', function() {
+            $(document).on('click', '.change-cancel-status', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).data('new-status');
 

@@ -91,7 +91,9 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
             // Only items of this vendor
             $vendorItems = $order->items->where('vendor_id', $vendorId);
 
-            $hasCancelRequest = $order->cancelOrder()->exists();
+            $hasCancelRequest = $order->cancelOrder()
+            ->whereIn('status', ['requested', 'approved'])
+            ->exists();
 
             // Vendor name
             $vendorName = optional($vendorItems->first()?->vendor)->name;

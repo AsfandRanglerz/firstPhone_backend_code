@@ -196,7 +196,7 @@ class MobileFilterController extends Controller
             // ---------------------------
             // BASE QUERY
             // ---------------------------
-            $query = VendorMobile::with('vendor', 'model')
+            $query = VendorMobile::with('vendor', 'model', 'brand')
                 ->when($request->brand_id, function ($q) use ($request) {
                     $q->where('brand_id', $request->brand_id);
                 })
@@ -272,20 +272,32 @@ class MobileFilterController extends Controller
             }
             // CASE 2: Latitude/longitude with optional radius
             elseif ($hasLatLng) {
-                $radius = $hasRadius ? $request->radius : 50; // default 50 km
-                $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
-                    if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
+                    $radius = $hasRadius ? (float)$request->radius : 50; // default 50 km
+                    $listings = $listings->filter(function ($item) use ($latReq, $lngReq, $radius) {
 
-                    $theta = $lngReq - $item->vendor->longitude;
-                    $dist = sin(deg2rad($latReq)) * sin(deg2rad($item->vendor->latitude)) +
-                            cos(deg2rad($latReq)) * cos(deg2rad($item->vendor->latitude)) * cos(deg2rad($theta));
-                    $dist = acos($dist);
-                    $dist = rad2deg($dist);
-                    $km   = $dist * 60 * 1.1515 * 1.609344;
+                        if (!$item->vendor?->latitude || !$item->vendor?->longitude) return false;
 
-                    return $km <= $radius;
-                })->values();
-            }
+                        // Haversine formula
+                        $earthRadius = 6371; // km
+
+                        $latFrom = deg2rad($latReq);
+                        $lngFrom = deg2rad($lngReq);
+                        $latTo   = deg2rad($item->vendor->latitude);
+                        $lngTo   = deg2rad($item->vendor->longitude);
+
+                        $dLat = $latTo - $latFrom;
+                        $dLng = $lngTo - $lngFrom;
+
+                        $a = sin($dLat/2) * sin($dLat/2) +
+                            cos($latFrom) * cos($latTo) *
+                            sin($dLng/2) * sin($dLng/2);
+
+                        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+                        $distance = $earthRadius * $c;
+
+                        return $distance <= $radius;
+                    })->values();
+                }
 
             // ---------------------------
             // FORMAT RESPONSE
@@ -308,6 +320,7 @@ class MobileFilterController extends Controller
                 return [
                     'id' => $item->id,
                     "vendor"    => $item->vendor->name ?? null,
+                    'brand'     => $item->brand->name ?? null,
                     'model'     => $item->model->name ?? null,
                     'price'     => $item->price,
                     'distance'  => round($distance) . ' km',

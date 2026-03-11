@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Brand;
-use App\Models\MobileModel;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
+use App\Models\MobileListing;
+use App\Models\MobileModel;
+use App\Models\MobileRequest;
+use App\Models\VendorMobile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ModelController extends Controller
 {
@@ -14,10 +17,13 @@ class ModelController extends Controller
 {
    $brand = Brand::with(['mobileModels' => function($query) {
     $query->orderBy('id', 'desc'); 
-}])->findOrFail($id);
+    }])->findOrFail($id);
     $models = $brand->mobileModels;
-
-    return view('admin.brands.models', compact('models' , 'brand'));
+    $modelUsedInRequests = MobileRequest::pluck('model_id')->toArray();
+    $modelUsedInListings = MobileListing::pluck('model')->toArray(); 
+    $modelUsedInVendorMobiles = VendorMobile::pluck('model_id')->toArray();
+    
+    return view('admin.brands.models', compact('models' , 'brand', 'modelUsedInRequests', 'modelUsedInListings', 'modelUsedInVendorMobiles'));
 }
 
  public function store(Request $request)
