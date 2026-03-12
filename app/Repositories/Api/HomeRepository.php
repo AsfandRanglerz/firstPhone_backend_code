@@ -86,7 +86,7 @@ class HomeRepository implements HomeRepositoryInterface
             ];
         });
     }
-    
+
     public function getTopSellingListings($request)
     {
         $search = $request->query('search');
