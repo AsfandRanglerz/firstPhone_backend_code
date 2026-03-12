@@ -29,9 +29,8 @@
                                     <tbody>
                                         @foreach ($brands as $brand)
                                         @php
-                                            $existBrand = in_array($brand->id, $brandUsedInRequests) || 
-                                                          in_array($brand->name, $brandUsedInListings) || 
-                                                          in_array($brand->id, $brandUsedInVendorMobiles);
+                                            $existBrand = in_array($brand->id, $brandUsedInVendorMobiles);
+                                                        
                                         @endphp
                                             <tr id="brand-row-{{ $brand->id }}">
                                                 <td>{{ $loop->iteration }}</td>
@@ -140,7 +139,7 @@
           <div class="modal-dialog" role="document">
               <div class="modal-content">
                         <div class="modal-body">
-                            {{__('You can not delete this brand. Because there are one or more mobile requests, customer mobiles, or vendor mobiles created of this brand.')}}
+                            {{__('You can not delete this brand. Because there are one or more vendor mobiles created of this brand.')}}
                         </div>
 
                   <div class="modal-footer">
@@ -225,7 +224,7 @@
                             $(newRows.reverse()).prependTo($(table.table().body()));
                         }
 
-                        toastr.success('Brand Created Successfully');
+                        toastr.success('Brand created successfully');
                         $('#brandModal').modal('hide');
                     },
                     error: function(xhr) {
@@ -309,7 +308,7 @@
                     data: $(this).serialize(),
                     success: function(response) {
                         updateBrandInTable(response.data);
-                        toastr.success('Brand Updated Successfully');
+                        toastr.success('Brand updated successfully');
                         $('#editModal').modal('hide');
                     },
                     error: function(xhr) {
@@ -357,7 +356,7 @@
                             },
                             success: function() {
                                 table.row($(`#brand-row-${id}`)).remove().draw();
-                                toastr.success('Brand Deleted Successfully');
+                                toastr.success('Brand deleted successfully');
                             },
                             error: function() {
                                 toastr.error('Delete failed.');

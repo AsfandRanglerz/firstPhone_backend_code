@@ -23,7 +23,7 @@
                                         <tr>
                                             <th>Sr.</th>
                                             <th>Date & Time</th>
-                                            <th>Order Number</th>
+                                            <th>Order ID</th>
                                             <th>Order Item</th>
                                             <th>Vendor</th>
                                             <th>Reason</th>
@@ -173,7 +173,7 @@
                         <input type="file" name="proof_file_image" class="form-control" required>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Submit</button>
+                        <button type="submit" id="approveFileSubmitBtn" class="btn btn-success">Submit</button>
                     </div>
                 </div>
             </form>
@@ -236,7 +236,7 @@
                                 $('#cancel_order_id').val(id);
                                 $('#approveFileModal').modal('show');
                             } else if (res.delivery_method === 'approved_direct') {
-                                toastr.success("Cancel order approved successfully!");
+                                toastr.success("Cancel order approved successfully");
                                 location.reload();
                             }
                         },
@@ -250,12 +250,26 @@
             });
 
             // Approve file form submit
-            $('#approveFileForm').on('submit', function(e) {
+           $('#approveFileForm').on('submit', function(e) {
                 e.preventDefault();
                 let formData = new FormData(this);
                 let id = $('#cancel_order_id').val();
 
+                // Grab the submit button
+                let submitBtn = $('#approveFileSubmitBtn');
+
+                // Save original text
+                let originalText = submitBtn.html();
+
+                // Show spinner and disable button
+                submitBtn.prop('disabled', true).html(`
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Please Wait ...
+                `);
+
+                // ✅ ADD THIS LINE
                 formData.append('status', 'approved');
+
                 $.ajax({
                     url: "{{ route('cancel-orders.updateStatus', ':id') }}".replace(':id', id),
                     type: 'POST',
@@ -265,14 +279,16 @@
                     success: function(data) {
                         if (data.success) {
                             $('#approveFileModal').modal('hide');
-                            toastr.success("Cancel order approved with proof!");
+                            toastr.success("Request Approved & Transaction Proof Uploaded");
                             location.reload();
                         } else {
                             toastr.error("Something went wrong");
+                            submitBtn.prop('disabled', false).html(originalText);
                         }
                     },
                     error: function() {
                         toastr.error("Failed to approve cancel order");
+                        submitBtn.prop('disabled', false).html(originalText);
                     }
                 });
             });
@@ -288,6 +304,10 @@
                     },
                     success: function(data) {
                         if (data.success) {
+                            if (newStatus === 'rejected')
+                            {
+                                toastr.success('Cancel order rejected successfully');
+                            }
                             location.reload();
                         } else {
                             toastr.error('Something went wrong');

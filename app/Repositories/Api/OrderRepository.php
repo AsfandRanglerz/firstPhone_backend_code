@@ -244,6 +244,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'street_address' => $order->shippingAddress->street_address ?? null,
             ],
             'products'       => $order->items->map(fn($item) => [
+                'product_id'  => $item->product_id,
                 'vendor_name' => $item->vendor->name ?? null,
                 'product_name' => ($item->product->brand->name ?? '') . ' ' . ($item->product->model->name ?? $item->product_name),
                 'price'        => $item->price,

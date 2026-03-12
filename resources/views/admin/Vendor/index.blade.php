@@ -36,6 +36,7 @@
                                             <th>Sr.</th>
                                             <th>Date & Time</th>
                                             <th>Name</th>
+                                            <th>Package Enabled</th>
                                             <th>Email</th>
                                             <th>Phone</th>
                                             <th>CNIC Front</th>
@@ -56,6 +57,13 @@
                                                 <td>{{ $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</td>
                                                 <td>{{ $user->name }}</td>
                                                 <td>
+                                                    @if($user->subscription && $user->subscription->plan)
+                                                        {{ $user->subscription->plan->name }}
+                                                    @else
+                                                        <span class="text-muted">No Package</span>
+                                                    @endif
+                                                </td>
+                                                <td>
                                                     <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
                                                 </td>
                                                 <td><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
@@ -67,7 +75,7 @@
                                                             <i class="fa fa-eye"></i>
                                                         </button>
                                                     @else
-                                                        <span class="text-muted">No CNIC</span>
+                                                        <span class="text-muted">No CNIC Front</span>
                                                     @endif
                                                 </td>
                                                 <td>

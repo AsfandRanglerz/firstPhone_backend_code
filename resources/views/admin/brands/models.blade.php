@@ -28,9 +28,8 @@
                                     <tbody>
                                         @foreach ($models as $model)
                                         @php
-                                            $existModel = in_array($model->id, $modelUsedInRequests) || 
-                                                          in_array($model->name, $modelUsedInListings) || 
-                                                          in_array($model->id, $modelUsedInVendorMobiles);
+                                            $existModel = in_array($model->id, $modelUsedInVendorMobiles);
+                                                          
                                         @endphp
                                             <tr id="brand-row-{{ $model->id }}">
                                                 <td>{{ $loop->iteration }}</td>
@@ -126,7 +125,7 @@
           <div class="modal-dialog" role="document">
               <div class="modal-content">
                         <div class="modal-body">
-                            {{__('You can not delete this model. Because there are one or more mobile requests, customer mobiles, or vendor mobiles created of this model.')}}
+                            {{__('You can not delete this model. Because there are one or more vendor mobiles created of this model.')}}
                         </div>
 
                   <div class="modal-footer">
@@ -209,7 +208,7 @@
         });
     }
 
-    toastr.success('Model Created Successfully');
+    toastr.success('Model created successfully');
     $('#brandModal').modal('hide');
 },
         error: function(xhr) {
@@ -279,7 +278,7 @@
         success: function(response) {
             updateBrandInTable(response.data);
 
-            toastr.success('Model Updated Successfully');
+            toastr.success('Model updated successfully');
 
             // Modal close
             $('#editModal').modal('hide');
@@ -320,7 +319,7 @@
                             },
                             success: function() {
                                 table.row($(`#brand-row-${id}`)).remove().draw();
-                                toastr.success('Model Deleted Successfully');
+                                toastr.success('Model deleted successfully');
                             },
                             error: function() {
                                 toastr.error('Delete failed.');

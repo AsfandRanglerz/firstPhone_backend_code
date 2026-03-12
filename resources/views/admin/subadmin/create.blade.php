@@ -71,22 +71,7 @@
                                             @enderror
                                         </div>
                                     </div>
-
-
-                                    <!-- Password Field -->
-                                    <div class="col-sm-6 pl-sm-0 pr-sm-3">
-                                        <div class="form-group position-relative">
-                                            <label for="password">Password <span style="color: red;">*</span></label>
-                                            <input type="password"
-                                                class="form-control @error('password') is-invalid @enderror" id="password"
-                                                name="password" placeholder="Password">
-
-                                            <span class="fa fa-eye position-absolute toggle-password"
-                                                style="top: 42px; right: 15px; cursor: pointer;"></span>
-                                        </div>
-                                    </div>
-
-
+                                    
                                     <!-- Submit Button -->
                                     <div class="card-footer text-center row">
                                         <div class="col-12">

@@ -78,21 +78,6 @@
                                             @enderror
                                         </div>
                                     </div>
-
-                                    <!-- Password Field -->
-                                    <div class="col-sm-6 pl-sm-0 pr-sm-3" style="margin-left: 15px;">
-                                        <div class="form-group position-relative">
-                                            <label for="password">Password (Optional)</label>
-                                            <input type="password"
-                                                class="form-control @error('password') is-invalid @enderror" id="password"
-                                                name="password" placeholder="Password"
-                                                value="{{ $subAdmin->plain_password }}">
-
-                                            <span class="fa fa-eye position-absolute toggle-password"
-                                                style="top: 42px; right: 15px; cursor: pointer;"></span>
-                                        </div>
-                                    </div>
-
                                 </div>
 
                                 <div class="card-footer text-center">

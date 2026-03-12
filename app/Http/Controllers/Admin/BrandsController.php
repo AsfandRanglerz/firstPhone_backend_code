@@ -16,11 +16,9 @@ class BrandsController extends Controller
 
     public function index()   {
        $brands = Brand::orderBy('id', 'desc')->get();
-       $brandUsedInRequests = MobileRequest::pluck('brand_id')->toArray();
-       $brandUsedInListings = MobileListing::pluck('brand')->toArray(); 
        $brandUsedInVendorMobiles = VendorMobile::pluck('brand_id')->toArray();
        
-        return view('admin.brands.index', compact('brands', 'brandUsedInRequests', 'brandUsedInListings', 'brandUsedInVendorMobiles'));
+        return view('admin.brands.index', compact('brands', 'brandUsedInVendorMobiles'));
     }
 
 
@@ -44,7 +42,7 @@ public function store(Request $request)
         } catch (\Illuminate\Database\QueryException $e) {
             // Handle unique constraint violation specifically
             if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                $errors["name.$index"] = ["The brand name '$name' has already been taken."];
+                $errors["name.$index"] = ["The brand name '$name' has already been taken"];
                 continue;
             }
             throw $e;
@@ -61,7 +59,7 @@ public function store(Request $request)
 
     return response()->json([
         'status' => 'success',
-        'message' => 'Brand Created Successfully',
+        'message' => 'Brand created successfully',
         'data' => $brands
     ]);
 }
@@ -92,7 +90,7 @@ public function delete($id) {
 
     $find->delete();
 
-    return redirect()->route('brands.index')->with(['success' => 'Brand Deleted Successfully']);
+    return redirect()->route('brands.index')->with(['success' => 'Brand deleted successfully']);
     
 }
 

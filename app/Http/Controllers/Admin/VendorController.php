@@ -80,7 +80,7 @@ class VendorController extends Controller
     public function create(VendorRequest $request)
     {
         $this->vendorService->createUser($request);
-        return redirect()->route('vendor.index')->with('success', 'Vendor Created Successfully');
+        return redirect()->route('vendor.index')->with('success', 'Vendor created successfully');
     }
 
     public function edit($id)
@@ -121,7 +121,7 @@ class VendorController extends Controller
 
         $this->vendorService->updateUser($id, $data);
 
-        return redirect('/admin/vendor')->with('success', 'Vendor Updated Successfully');
+        return redirect('/admin/vendor')->with('success', 'Vendor updated successfully');
     }
 
 
@@ -129,6 +129,6 @@ class VendorController extends Controller
     public function delete($id)
     {
         $deleted = $this->vendorService->deleteUser($id);
-        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Vendor Deleted Successfully' : 'User not found');
+        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Vendor deleted successfully' : 'User not found');
     }
 }

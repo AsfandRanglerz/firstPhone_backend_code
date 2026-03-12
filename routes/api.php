@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ContactUsController;
 use App\Http\Controllers\Api\CustomerMobileListingController;
 use App\Http\Controllers\Api\DeleteAccountController;
 use App\Http\Controllers\Api\FaqController;
@@ -41,6 +42,9 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+
+//Contact Us
+Route::get('/contact-us', [ContactUsController::class, 'index']);
 
 Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');

@@ -19,7 +19,8 @@
                                             <label for="name">Plan Name <span style="color: red;">*</span></label>
                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                 id="name" name="name" value="{{ old('name', $plan->name) }}"
-                                                placeholder="Enter plan name (e.g. Free, Basic, Standard)">
+                                                placeholder="Enter plan name (e.g. Free, Basic, Standard)"
+                                                {{ $plan->id == 2 ? 'disabled' : '' }}>
                                             @error('name')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -33,7 +34,8 @@
                                             <input type="number" step="0.01"
                                                 class="form-control @error('price') is-invalid @enderror" id="price"
                                                 name="price" value="{{ old('price', intval($plan->price)) }}"
-                                                placeholder="Enter price (0 for Free)">
+                                                placeholder="Enter price (0 for Free)"
+                                                {{ $plan->id == 2 ? 'disabled' : '' }}>
                                             @error('price')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -88,7 +90,7 @@
                                         <div class="form-group">
                                             <label for="is_active">Status</label>
                                             <select class="form-control @error('is_active') is-invalid @enderror"
-                                                id="is_active" name="is_active">
+                                                id="is_active" name="is_active" {{ $plan->id == 2 ? 'disabled' : '' }}>
                                                 <option value="1" {{ old('is_active', $plan->is_active) == 1 ? 'selected' : '' }}>Active</option>
                                                 <option value="0" {{ old('is_active', $plan->is_active) == 0 ? 'selected' : '' }}>Inactive</option>
                                             </select>

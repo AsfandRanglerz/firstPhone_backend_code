@@ -28,6 +28,11 @@ class Vendor extends Authenticatable
         return $this->hasMany(VendorMobile::class);
     }
 
+    public function subscription()
+    {
+        return $this->hasOne(VendorSubscription::class, 'vendor_id')->where('is_active', 1);
+    }
+
 
 	// VendorMobile.php
 public function vendor()

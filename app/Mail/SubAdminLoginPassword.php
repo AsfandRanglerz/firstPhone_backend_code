@@ -16,10 +16,10 @@ class SubAdminLoginPassword extends Mailable
      *
      * @return void
      */
-    public $message;
-    public function __construct($message)
+    public $data;
+    public function __construct($data)
     {
-        $this->message = $message;
+        $this->data = $data;
     }
 
     /**
@@ -29,7 +29,7 @@ class SubAdminLoginPassword extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.subadmin_login_password')
-            ->with('message',$this->message);
+        return $this->subject('Sub Admin Account Created')
+                ->view('emails.subadmin_login_password');
     }
 }

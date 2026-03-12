@@ -24,7 +24,7 @@ class VendorMobileListingController extends Controller
 {
     $mobile = VendorMobile::findOrFail($id); 
     $mobile->delete();
-    return redirect()->route('vendormobile.index')->with('success', 'Vendor Mobile Deleted Successfully');
+    return redirect()->route('vendormobile.index')->with('success', 'Vendor mobile deleted successfully');
 }
 
     

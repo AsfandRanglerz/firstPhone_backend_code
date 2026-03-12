@@ -30,7 +30,7 @@ class SubscriptionPlanController extends Controller
     public function store(StoreSubscriptionPlanRequest $request)
     {
         $this->subscriptionPlanRepo->create($request->validated());
-        return redirect()->route('subscription.index')->with('success', 'Subscription Plan Created Successfully.');
+        return redirect()->route('subscription.index')->with('success', 'Subscription plan created successfully');
     }
 
     public function edit($id)
@@ -42,12 +42,12 @@ class SubscriptionPlanController extends Controller
     public function update(UpdateSubscriptionPlanRequest $request, $id)
     {
         $this->subscriptionPlanRepo->update($id, $request->validated());
-        return redirect()->route('subscription.index')->with('success', 'Subscription Plan Updated Successfully.');
+        return redirect()->route('subscription.index')->with('success', 'Subscription plan updated successfully');
     }
 
     public function delete($id)
     {
         $this->subscriptionPlanRepo->delete($id);
-        return redirect()->route('subscription.index')->with('success', 'Subscription Plan Deleted Successfully.');
+        return redirect()->route('subscription.index')->with('success', 'Subscription plan deleted successfully');
     }
 }

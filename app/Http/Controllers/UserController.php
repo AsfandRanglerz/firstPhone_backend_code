@@ -59,7 +59,7 @@ class UserController extends Controller
     {
 
         $this->userService->createUser($request);
-        return redirect()->route('user.index')->with('success', 'Customer Created Successfully');
+        return redirect()->route('user.index')->with('success', 'Customer created successfully');
     }
 
     public function edit($id)
@@ -88,13 +88,13 @@ class UserController extends Controller
             $data['image'] = $request->file('image');
         }
         $this->userService->updateUser($id, $data);
-        return redirect('/admin/user')->with('success', 'Customer Updated Successfully');
+        return redirect('/admin/user')->with('success', 'Customer updated successfully');
     }
 
     public function delete($id)
     {
         $deleted = $this->userService->deleteUser($id);
-        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Customer Deleted Successfully' : 'User not found');
+        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Customer deleted successfully' : 'User not found');
     }
 
     public function deleteSelected(Request $request)

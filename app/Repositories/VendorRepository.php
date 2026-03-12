@@ -11,7 +11,7 @@ class VendorRepository implements VendorRepositoryInterface
 {
     public function all()
     {
-        return Vendor::orderBy('id', 'desc')->get();
+        return Vendor::with('subscription.plan')->orderBy('id', 'desc')->get();
     }
 
     public function find($id)

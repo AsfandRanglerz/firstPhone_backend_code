@@ -1,5 +1,5 @@
 @extends('admin.layout.app')
-@section('title', 'Product Images')
+@section('title', 'Product Images & Videos')
 
 @section('content')
     <div class="main-content" style="min-height: 562px;">
@@ -10,7 +10,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Product Images</h4>
+                                <h4>Product Images & Videos</h4>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
 
@@ -166,7 +166,7 @@
             } else if (item.type === "video") {
                 div.innerHTML = `
                     <video controls class="w-100" 
-                           style="max-height:65vh; max-width:85%; object-fit:contain;">
+                           style="max-height:65vh; max-width:72%; object-fit:contain;">
                         <source src="${item.src}" type="video/mp4">
                     </video>
                 `;

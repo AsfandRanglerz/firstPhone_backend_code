@@ -10,6 +10,10 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4>Sub Admins</h4>
+                                <h6 class="text-danger" style="font-style: italic;">
+                                    Note: The default password for all sub-admins is <strong>12345678</strong>. 
+                                    This password is automatically generated when a new sub-admin is created.
+                                </h6>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
                                 @if (Auth::guard('admin')->check() ||
