@@ -33,6 +33,7 @@ class RequestedMobileRepository implements RequestedMobileRepositoryInterface
                 ")
             )
         ->having('distance', '<=', $radius)
+        ->orderBy('mobile_requests.created_at', 'desc')
         ->orderBy('distance', 'asc')
         ->get()
             ->map(function ($item) {
