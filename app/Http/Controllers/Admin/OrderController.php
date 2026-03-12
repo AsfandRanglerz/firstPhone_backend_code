@@ -42,7 +42,7 @@ class OrderController extends Controller
     public function destroy($id)
     {
         $this->orderRepo->deleteOrder($id);
-        return redirect()->route('order.index')->with('success', 'Order Deleted Successfully');
+        return redirect()->route('order.index')->with('success', 'Order deleted successfully');
     }
 
     public function updateStatus(Request $request, $id)
@@ -77,7 +77,7 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'new_status' => $order->order_status,
-            'message' => 'Order Status Updated Successfully'
+            'message' => 'Order status updated successfully'
         ]);
     }
 
@@ -87,7 +87,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment Status Updated Successfully',
+            'message' => 'Payment status updated successfully',
         ]);
     }
 
@@ -141,7 +141,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Cancel order status updated successfully.'
+            'message' => 'Cancel order status updated successfully'
         ]);
     }
 
@@ -232,6 +232,6 @@ class OrderController extends Controller
         $cancelOrder->delete();
 
         return redirect()->route('cancel-order.index')
-            ->with('success', 'Cancel order deleted successfully.');
+            ->with('success', 'Cancel order deleted successfully');
     }
 }

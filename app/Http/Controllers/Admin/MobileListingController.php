@@ -132,7 +132,7 @@ class MobileListingController extends Controller
             ]);
             // IMPORTANT: service ko crash na karo
         }
-        return redirect()->route('mobile.index')->with('success', 'Mobile Listing Approved Successfully');
+        return redirect()->route('mobile.index')->with('success', 'Mobile listing approved successfully');
     }
  
    public function reject($id)
@@ -141,14 +141,14 @@ class MobileListingController extends Controller
         $mobile->status = 1; // 1 = Rejected
         $mobile->save();
 
-        return redirect()->route('mobile.index')->with('success', 'Mobile Listing Rejected');
+        return redirect()->route('mobile.index')->with('success', 'Mobile listing rejected');
     }
 
     public function delete($id)
     {
         $mobile = MobileListing::findOrFail($id); 
         $mobile->delete();
-        return redirect()->route('mobile.index')->with('success', 'Customer Mobile Deleted Successfully');
+        return redirect()->route('mobile.index')->with('success', 'Customer mobile deleted successfully');
     }
 
     

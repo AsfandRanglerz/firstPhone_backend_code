@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Mail\VendorRequestForRegister;
+use App\Models\SubscriptionPlan;
 use App\Models\Vendor;
 use App\Models\VendorImage;
+use App\Models\VendorSubscription;
+use App\Repositories\Interfaces\VendorRepositoryInterface;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VendorRequestForRegister;
-use App\Repositories\Interfaces\VendorRepositoryInterface;
 
 class VendorService
 {
@@ -59,6 +61,13 @@ class VendorService
 
         // Create Vendor
         $vendor = $this->vendorRepo->create($data);
+        $plan = SubscriptionPlan::find(2);
+        VendorSubscription::create([
+            'vendor_id' => $vendor->id,
+            'subscription_plan_id' => 2,
+            'start_date' => now(),
+            'end_date' => now()->addDays($plan->duration_days)
+        ]);
 
         // Save up to 5 shop images
         if ($request->hasFile('shop_images')) {

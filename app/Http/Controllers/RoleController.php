@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\SideMenue;
-use App\Models\Permission;
-use Illuminate\Http\Request;
-use App\Models\UserRolePermission;
-use Illuminate\Support\Facades\Auth;
+use App\Models\UserRole;
 use App\Models\SideMenuHasPermission;
+use App\Models\UserRolePermission;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
@@ -28,7 +29,8 @@ class RoleController extends Controller
                 return $items->pluck('permission.name'); // ['view', 'create']
             });
         }
-        return view('admin.rolepermission.index', compact('roles', 'sideMenuPermissions'));
+        $rolesUsed = UserRole::pluck('role_id')->toArray();
+        return view('admin.rolepermission.index', compact('roles', 'sideMenuPermissions', 'rolesUsed'));
     }
 
     public function create()
@@ -44,7 +46,7 @@ class RoleController extends Controller
         $role = Role::create([
             'name' => $request->name,
         ]);
-        return redirect('admin/roles')->with('message', 'Role Created Successfully');
+        return redirect('admin/roles')->with('message', 'Role created successfully');
     }
 
 
@@ -53,7 +55,7 @@ class RoleController extends Controller
         $find = Role::find($id);
         if ($find) {
             $find->delete();
-            return redirect()->back()->with('success', 'Role Deleted Successfully');
+            return redirect()->back()->with('success', 'Role deleted successfully');
         } else {
             return redirect()->back()->with('error', 'Role not found');
         }
@@ -117,7 +119,7 @@ class RoleController extends Controller
             }
         }
 
-        return redirect('/admin/roles')->with('success', 'Permissions Saved Successfully');
+        return redirect('/admin/roles')->with('success', 'Permissions saved successfully');
     }
 
 

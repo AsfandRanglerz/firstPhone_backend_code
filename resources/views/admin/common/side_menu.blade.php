@@ -239,13 +239,13 @@
 
 
         {{--  About Us --}}
-        @if (Auth::guard('admin')->check() ||
+        {{-- @if (Auth::guard('admin')->check() ||
                 ($sideMenuPermissions->has('About us') && $sideMenuPermissions['About us']->contains('view')))
             <li class="dropdown {{ request()->is('admin/about-us*') ? 'active' : '' }}">
                 <a href="{{ url('admin/about-us') }}" class="nav-link"><i data-feather="help-circle"></i><span>About
                         Us</span></a>
             </li>
-        @endif
+        @endif --}}
 
 
         {{--  Privacy Policy --}}

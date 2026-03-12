@@ -80,7 +80,8 @@ button.bg-warning:hover{
                                             {{-- <th>Shipping Address</th> --}}
                                             <th>Buy From</th>
                                             <th>Product</th>
-                                            <th>Price (PKR)</th>
+                                            <th>Total Price (PKR)</th>
+                                            <th>Shipping Charges (PKR)</th>
                                             <th>Payment Status</th>
                                             <th>Delivery Method</th>
                                             <th>Order Status</th>
@@ -91,7 +92,7 @@ button.bg-warning:hover{
                                         @foreach ($orders as $index => $order)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $order->order_number }}</td>
+                                                <td>{{ '#'.$order->order_number }}</td>
                                                 <td>{{ $order->created_at->format('d M Y, h:i A') }}</td>
                                                 <td>
                                                     {{ $order->customer->name ?? 'N/A' }}<br>
@@ -104,13 +105,19 @@ button.bg-warning:hover{
                                                     {{ $order->shipping_address ?? 'N/A' }}
                                                 </td> --}}
                                                 <td>
-                                                    @foreach ($order->items as $item)
-                                                        {{ $item->vendor->name ?? 'No Vendor' }}<br>
-                                                        <small><a
-                                                                href="mailto:{{ $item->vendor->email }}">{{ $item->vendor->email }}</a></small><br>
-                                                        <small><a
-                                                                href="tel:{{ $item->vendor->phone }}">{{ $item->vendor->phone }}</a></small>
-                                                    @endforeach
+                                                    {{ $order->items->first()->vendor->name ?? 'No Vendor' }}<br>
+
+                                                    <small>
+                                                        <a href="mailto:{{ $order->items->first()->vendor->email ?? '' }}">
+                                                            {{ $order->items->first()->vendor->email ?? '' }}
+                                                        </a>
+                                                    </small><br>
+
+                                                    <small>
+                                                        <a href="tel:{{ $order->items->first()->vendor->phone ?? '' }}">
+                                                            {{ $order->items->first()->vendor->phone ?? '' }}
+                                                        </a>
+                                                    </small>
                                                 </td>
                                                 <td>
                                                     @foreach ($order->items as $item)
@@ -122,11 +129,17 @@ button.bg-warning:hover{
                                                     @endforeach
                                                 </td>
                                                 <td>
-                                                    @foreach ($order->items as $item)
-                                                        {{ number_format($item->price * $item->quantity) }}
-                                                    @endforeach
+                                                    {{ number_format($order->items->sum(function($item){
+                                                        return $item->price * $item->quantity;
+                                                    })) }}
                                                 </td>
-
+                                                <td>
+                                                    @if($order->shipping_charges)
+                                                    {{ number_format($order->shipping_charges) }}</td>
+                                                    @else
+                                                    <span class="text-muted">No Shipping Charges</span>
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     @php
                                                         $paymentColors = [

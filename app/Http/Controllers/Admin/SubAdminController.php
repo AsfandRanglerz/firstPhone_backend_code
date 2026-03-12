@@ -72,7 +72,6 @@ class SubAdminController extends Controller
         ],
         'role' => 'required|exists:roles,id',
         'image' => 'nullable|image|max:2048',
-        'password' => 'nullable|min:6'
     ]);
 
     if ($validator->fails()) {
@@ -95,12 +94,12 @@ $validatedData = $validator->validated();
 
     // $password = random_int(10000000, 99999999);
 
-    $password = $request->password; 
+    $password = ('12345678'); 
 
     $subAdmin = SubAdmin::create([
         'name' => $request->name,
         'email' => $request->email,
-        'password' => bcrypt($password),
+        'password' => bcrypt('12345678'), // Set default password or use $password if you want to generate a random one
         'status' => $request->status ?? 1,
         'image' => $image,
     ]);
@@ -109,15 +108,15 @@ $validatedData = $validator->validated();
 
     $subAdmin->roles()->attach($request->role);
  
-    $message = [
+    $data = [
         'name' => $request->name,
         'email' => $request->email,
         'password' => $password,
         'role' => Role::find($request->role)->name ?? 'N/A',
     ];
-    // Mail::to($request->email)->send(new SubAdminLoginPassword($message));
+    // Mail::to($request->email)->send(new SubAdminLoginPassword($data));
 
-    return redirect()->route('subadmin.index')->with(['success' => 'Sub Admin Created Successfully']);
+    return redirect()->route('subadmin.index')->with(['success' => 'Sub admin created successfully']);
 }
 
 
@@ -145,7 +144,6 @@ public function edit($id)
         ],
       
         'image' => 'nullable|image|max:2048',
-        'password' => 'nullable|min:6'
     ]);
 
     if ($validator->fails()) {
@@ -179,20 +177,20 @@ $validatedData = $validator->validated();
             'name' => $request->name,
             'email' => $request->email,
             'image' => $image,
-            'password' => $request->password ? bcrypt($request->password) : $subAdmin->password,
+            'password' => bcrypt('12345678'),
         ]);
 
          // Single role update
         $subAdmin->roles()->sync([$request->role]);
 
-        return redirect()->route('subadmin.index')->with('success', 'Sub Admin Updated Successfully');
+        return redirect()->route('subadmin.index')->with('success', 'Sub admin updated successfully');
     }
 
     public function destroy($id)
     {
         // return $id;
         SubAdmin::destroy($id);
-        return redirect()->route('subadmin.index')->with(['success' => 'Sub Admin Deleted Successfully']);
+        return redirect()->route('subadmin.index')->with(['success' => 'Sub admin deleted successfully']);
     }
 
     public function updatePermissions(Request $request, $id)
@@ -220,7 +218,7 @@ $validatedData = $validator->validated();
 
         SubAdminPermission::insert($permissions);
 
-        return redirect()->route('subadmin.index')->with('message', 'Permissions Updated Successfully');
+        return redirect()->route('subadmin.index')->with('message', 'Permissions updated successfully');
     }
 
     public function StatusChange(Request $request)

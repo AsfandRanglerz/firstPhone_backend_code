@@ -19,11 +19,9 @@ class ModelController extends Controller
     $query->orderBy('id', 'desc'); 
     }])->findOrFail($id);
     $models = $brand->mobileModels;
-    $modelUsedInRequests = MobileRequest::pluck('model_id')->toArray();
-    $modelUsedInListings = MobileListing::pluck('model')->toArray(); 
     $modelUsedInVendorMobiles = VendorMobile::pluck('model_id')->toArray();
     
-    return view('admin.brands.models', compact('models' , 'brand', 'modelUsedInRequests', 'modelUsedInListings', 'modelUsedInVendorMobiles'));
+    return view('admin.brands.models', compact('models' , 'brand', 'modelUsedInVendorMobiles'));
 }
 
  public function store(Request $request)
