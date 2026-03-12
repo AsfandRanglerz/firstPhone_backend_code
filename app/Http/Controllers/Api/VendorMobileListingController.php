@@ -36,7 +36,7 @@ class VendorMobileListingController extends Controller
     public function editListing(Request $request, $id)
     {
         try {
-            $data = $this->vendorMobileService->updateListing($request, $id);
+            $data = $this->vendormobileListingService->updateListing($request, $id);
 
             return ResponseHelper::success(
                 $data,

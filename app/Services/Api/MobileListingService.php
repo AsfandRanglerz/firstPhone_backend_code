@@ -145,6 +145,7 @@ public function getcustomermobileListing()
             ->get()
             ->map(function ($listing) {
                 return [
+                    'id' => $listing->id,
                     'model' => $listing->model ? $listing->model : null,
                     'brand' => $listing->brand ? $listing->brand : null,
                     'customer' => $listing->customer ? $listing->customer->name : null,

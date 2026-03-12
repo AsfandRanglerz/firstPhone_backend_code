@@ -25,11 +25,11 @@
                                             <th>Name</th>
                                             <th>Brand</th>
                                             <th>Model</th>
+                                            <th>RAM </th>
                                             <th>ROM </th>
                                             <th>Price (PKR)</th>
                                             <th>Condition</th>
                                             <th>Color</th>
-                                            <th>RAM </th>
                                             <th>Processor</th>
                                             <th>Display</th>
                                             <th>Charging</th>
@@ -82,10 +82,17 @@
                                                 @endif
                                                 </td>
                                                 <td>
+                                                @if($mobile->ram)
+                                                    {{ $mobile->ram }}
+                                                @else
+                                                 <span class="text-muted">No RAM</span>
+                                                @endif
+                                                </td>
+                                                <td>
                                                 @if($mobile->storage)
                                                     {{ $mobile->storage }}
                                                 @else
-                                                 <span class="text-muted">No Storage</span>
+                                                 <span class="text-muted">No ROM</span>
                                                 @endif
                                                 </td>
                                                 <td>
@@ -107,13 +114,6 @@
                                                     {{ $mobile->color }}
                                                 @else
                                                  <span class="text-muted">No Color</span>
-                                                @endif
-                                                </td>
-                                                <td>
-                                                @if($mobile->ram)
-                                                    {{ $mobile->ram }}
-                                                @else
-                                                 <span class="text-muted">No RAM</span>
                                                 @endif
                                                 </td>
                                                 <td>

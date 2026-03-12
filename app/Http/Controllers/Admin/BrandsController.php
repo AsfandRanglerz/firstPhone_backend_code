@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Brand;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
+use App\Models\MobileListing;
+use App\Models\MobileRequest;
+use App\Models\VendorMobile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class BrandsController extends Controller
 {
@@ -13,8 +16,11 @@ class BrandsController extends Controller
 
     public function index()   {
        $brands = Brand::orderBy('id', 'desc')->get();
-
-        return view('admin.brands.index', compact('brands'));
+       $brandUsedInRequests = MobileRequest::pluck('brand_id')->toArray();
+       $brandUsedInListings = MobileListing::pluck('brand')->toArray(); 
+       $brandUsedInVendorMobiles = VendorMobile::pluck('brand_id')->toArray();
+       
+        return view('admin.brands.index', compact('brands', 'brandUsedInRequests', 'brandUsedInListings', 'brandUsedInVendorMobiles'));
     }
 
 

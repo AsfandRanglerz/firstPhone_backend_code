@@ -34,6 +34,7 @@
                                         <tr>
                                             <th><input type="checkbox" id="selectAllCheckbox"></th>
                                             <th>Sr.</th>
+                                            <th>Date & Time</th>
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Phone</th>
@@ -52,6 +53,7 @@
                                                     <input type="checkbox" class="user-checkbox" value="{{ $user->id }}">
                                                 </td>
                                                 <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</td>
                                                 <td>{{ $user->name }}</td>
                                                 <td>
                                                     <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
@@ -105,25 +107,28 @@
                                                             'activated' => 'btn-primary',
                                                             'deactivated' => 'btn-danger',
                                                         ];
+                                                        $statusOptions = [
+                                                            'pending' => ['activated','deactivated'],
+                                                            'activated' => ['deactivated'],
+                                                            'deactivated' => ['activated']
+                                                        ];
                                                     @endphp
 
                                                     <div class="dropdown">
                                                         <button class="btn btn-sm dropdown-toggle {{ $statusColors[$user->status] ?? 'btn-light' }}"
-                                                                type="button"
-                                                                data-toggle="dropdown"
-                                                                id="statusBtn-{{ $user->id }}">
+                                                            type="button"
+                                                            data-toggle="dropdown">
                                                             {{ ucfirst($user->status) }}
                                                         </button>
+
                                                         <div class="dropdown-menu">
-                                                            @foreach (['pending', 'activated', 'deactivated'] as $status)
-                                                                @if ($status !== $user->status)
-                                                                    <button type="button"
-                                                                            class="dropdown-item change-vendor-status"
-                                                                            data-user-id="{{ $user->id }}"
-                                                                            data-new-status="{{ $status }}">
-                                                                        {{ ucfirst($status) }}
-                                                                    </button>
-                                                                @endif
+                                                            @foreach($statusOptions[$user->status] ?? [] as $status)
+                                                                <button type="button"
+                                                                    class="dropdown-item change-vendor-status"
+                                                                    data-user-id="{{ $user->id }}"
+                                                                    data-new-status="{{ $status }}">
+                                                                    {{ ucfirst($status) }}
+                                                                </button>
                                                             @endforeach
                                                         </div>
                                                     </div>
@@ -337,22 +342,24 @@
                             .text(status.charAt(0).toUpperCase() + status.slice(1))
                             .removeClass('btn-warning btn-primary btn-danger')
                             .addClass(colorClasses[status]);
-
+                                const statusOptions = {
+                                pending: ['activated','deactivated'],
+                                activated: ['deactivated'],
+                                deactivated: ['activated']
+                            };
                         // ✅ Rebuild dropdown menu
                         const dropdownMenu = btn.next('.dropdown-menu');
                         dropdownMenu.empty();
 
-                        ['pending', 'activated', 'deactivated'].forEach(s => {
-                            if (s !== status) {
-                                dropdownMenu.append(`
-                                    <button type="button"
-                                        class="dropdown-item change-vendor-status"
-                                        data-user-id="${userId}"
-                                        data-new-status="${s}">
-                                        ${s.charAt(0).toUpperCase() + s.slice(1)}
-                                    </button>
-                                `);
-                            }
+                        statusOptions[status].forEach(s => {
+                            dropdownMenu.append(`
+                                <button type="button"
+                                    class="dropdown-item change-vendor-status"
+                                    data-user-id="${userId}"
+                                    data-new-status="${s}">
+                                    ${s.charAt(0).toUpperCase() + s.slice(1)}
+                                </button>
+                            `);
                         });
 
                         $('#deactivationModal').modal('hide');
