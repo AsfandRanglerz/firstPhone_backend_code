@@ -208,7 +208,7 @@
         });
     }
 
-    toastr.success('Model created successfully');
+    toastr.success('Model Created Successfully');
     $('#brandModal').modal('hide');
 },
         error: function(xhr) {
@@ -278,7 +278,7 @@
         success: function(response) {
             updateBrandInTable(response.data);
 
-            toastr.success('Model updated successfully');
+            toastr.success('Model Updated Successfully');
 
             // Modal close
             $('#editModal').modal('hide');
@@ -319,7 +319,7 @@
                             },
                             success: function() {
                                 table.row($(`#brand-row-${id}`)).remove().draw();
-                                toastr.success('Model deleted successfully');
+                                toastr.success('Model Deleted Successfully');
                             },
                             error: function() {
                                 toastr.error('Delete failed.');

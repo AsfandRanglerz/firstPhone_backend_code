@@ -82,7 +82,7 @@ class NotificationController extends Controller
             $vendorIds = Vendor::whereIn('id', $request->users)->pluck('id')->toArray();
 
             if (empty($userIds) && empty($vendorIds)) {
-                return back()->withErrors(['users' => 'No valid customer or vendor IDs provided.']);
+                return back()->withErrors(['users' => 'No Valid Customer Or Vendor IDs Provided']);
             }
 
             $users = array_merge(
@@ -117,7 +117,7 @@ class NotificationController extends Controller
     public function deleteAll()
     {
         Notification::where('sent_by', 'admin')->where('delete_by_admin', 0)->update(['delete_by_admin' => 1]);
-        return redirect()->route('notification.index')->with('success', 'All notifications have been deleted');
+        return redirect()->route('notification.index')->with('success', 'All Notifications Have Been Deleted');
     }
 
     public function getUsersByType(Request $request)

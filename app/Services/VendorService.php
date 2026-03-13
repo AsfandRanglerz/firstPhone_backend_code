@@ -62,11 +62,14 @@ class VendorService
         // Create Vendor
         $vendor = $this->vendorRepo->create($data);
         $plan = SubscriptionPlan::find(2);
+        $start = now();
+        $end = $start->copy()->addDays($plan->duration_days);
         VendorSubscription::create([
             'vendor_id' => $vendor->id,
             'subscription_plan_id' => 2,
-            'start_date' => now(),
-            'end_date' => now()->addDays($plan->duration_days)
+            'start_date' => $start,
+            'end_date' => $end,
+            'is_active' => true,
         ]);
 
         // Save up to 5 shop images

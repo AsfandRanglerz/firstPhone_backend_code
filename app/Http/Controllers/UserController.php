@@ -59,7 +59,7 @@ class UserController extends Controller
     {
 
         $this->userService->createUser($request);
-        return redirect()->route('user.index')->with('success', 'Customer created successfully');
+        return redirect()->route('user.index')->with('success', 'Customer Created Successfully');
     }
 
     public function edit($id)
@@ -76,7 +76,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'regex:/^[\w\.\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z]{2,6}$/',
-                'unique:users,email' . $id
+                'unique:users,email,' . $id
             ],
             'phone' => 'required|regex:/^[0-9]+$/|max:15',
         ]);
@@ -88,13 +88,13 @@ class UserController extends Controller
             $data['image'] = $request->file('image');
         }
         $this->userService->updateUser($id, $data);
-        return redirect('/admin/user')->with('success', 'Customer updated successfully');
+        return redirect('/admin/user')->with('success', 'Customer Updated Successfully');
     }
 
     public function delete($id)
     {
         $deleted = $this->userService->deleteUser($id);
-        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Customer deleted successfully' : 'User not found');
+        return redirect()->back()->with($deleted ? 'success' : 'error', $deleted ? 'Customer Deleted Successfully' : 'User Not Fund');
     }
 
     public function deleteSelected(Request $request)

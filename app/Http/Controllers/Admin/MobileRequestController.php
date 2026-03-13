@@ -44,7 +44,7 @@ class MobileRequestController extends Controller
         $mobilerequest->update(['status' => 0]); 
     }
 
-    return redirect()->back()->with('success', 'Mobile request marked as read');
+    return redirect()->back()->with('success', 'Mobile Request Marked As Read');
 }
 
     

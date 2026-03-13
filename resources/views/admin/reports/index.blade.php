@@ -121,10 +121,10 @@
                     $(".total-orders").text(res.totals.orders);
                     $(".total-revenue").text("Rs " + res.totals.revenue);
 
-                    toastr.success("Filter Applied Successfully!");
+                    toastr.success("Filter Applied Successfully");
                 },
                 error: function() {
-                    toastr.error("Failed to fetch reports. Try again!");
+                    toastr.error("Failed To Fetch Reports. Try Again");
                 }
             });
         }

@@ -18,10 +18,7 @@
                                     <a class="btn btn-primary mb-3 text-white"
                                         href="{{ url('/admin/user-create') }}">Create</a>
                                 @endif
-                                <div>
-                                    <button class="btn btn-info" id="selectAllBtn">Select All</button>
-                                    <button class="btn btn-danger" id="deleteAllBtn">Delete All</button>
-                                </div>
+                               
                                 </div>
 
                                 {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('users') && $sideMenuPermissions['users']->contains('view')))
@@ -32,7 +29,6 @@
                                 <table class="table responsive" id="table_id_events">
                                     <thead>
                                         <tr>
-                                            <th><input type="checkbox" id="selectAllCheckbox"></th>
                                             <th>Sr.</th>
                                             <th>Name</th>
                                             <th>Email</th>
@@ -43,11 +39,8 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($users as $user)
+                                        
                                             <tr>
-                                                <td>
-                                                    <input type="checkbox" class="user-checkbox" value="{{ $user->id }}">
-                                                </td>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $user->name }}</td>
                                                 <td>
@@ -56,7 +49,7 @@
                                                 <td>    <a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
                                                 <td>
                                                     @if ($user->image)
-                                                        <img src="{{ asset($user->image) }}" alt="User Image"
+                                                        <img src="{{ asset($user->image) }}" loading="lazy" alt="User Image"
                                                             style="width: 50px; height: 50px;">
                                                     @else
                                                         <span>No Image</span>
@@ -154,7 +147,11 @@
     if ($.fn.DataTable.isDataTable('#table_id_events')) {
         $('#table_id_events').DataTable().destroy();
     }
-    $('#table_id_events').DataTable();
+    $('#table_id_events').DataTable({
+    pageLength: 25,
+    deferRender: true,
+    responsive: true,
+});
 
     // SweetAlert2 delete confirmation using event delegation
     $(document).on('click', '.show_confirm', function(event) {
@@ -239,73 +236,4 @@
     }
 });
     </script>
-    <script>
-
-document.getElementById('selectAllCheckbox').addEventListener('change', function() {
-    document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.checked = this.checked;
-    });
-});
-
-document.getElementById('selectAllBtn').addEventListener('click', function(){
-    document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.checked = true;
-    });
-});
-
-// DELETE ALL
-$('#deleteAllBtn').click(function(){
-
-    let ids = [];
-
-    $('.user-checkbox:checked').each(function(){
-        ids.push($(this).val());
-    });
-
-    if(ids.length === 0){
-        swal({
-            title: "No users selected",
-            text: "Please select users to delete",
-            icon: "warning"
-        });
-        return;
-    }
-
-    swal({
-        title: "Delete Selected Users?",
-        text: "This action cannot be undone!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true,
-    }).then((willDelete)=>{
-
-        if(willDelete){
-
-            $.ajax({
-                url:"{{ url('/admin/delete-selected-users') }}",
-                type:"POST",
-                data:{
-                    _token:"{{ csrf_token() }}",
-                    ids:ids
-                },
-                success:function(){
-
-                    swal({
-                        title: "Deleted!",
-                        text: "Selected users deleted successfully.",
-                        icon: "success"
-                    }).then(()=>{
-                        location.reload();
-                    });
-
-                }
-            });
-
-        }
-
-    });
-
-});
-
-</script>
-@endsection
+   @endsection

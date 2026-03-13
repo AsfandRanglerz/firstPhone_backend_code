@@ -52,14 +52,14 @@ public function store(Request $request)
     if (!empty($errors)) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Some brands could not be created',
+            'message' => 'Some Brands Could Not Be Created',
             'errors' => $errors
         ], 422);
     }
 
     return response()->json([
         'status' => 'success',
-        'message' => 'Brand created successfully',
+        'message' => 'Brand Created Successfully',
         'data' => $brands
     ]);
 }
@@ -80,7 +80,7 @@ public function update(Request $request, $id)
 
     return response()->json([
         'status' => 'success',
-        'message' => 'Brand updated successfully',
+        'message' => 'Brand Updated Successfully',
         'data' => $brand
     ]);
 }
@@ -90,7 +90,7 @@ public function delete($id) {
 
     $find->delete();
 
-    return redirect()->route('brands.index')->with(['success' => 'Brand deleted successfully']);
+    return redirect()->route('brands.index')->with(['success' => 'Brand Deleted Successfully']);
     
 }
 

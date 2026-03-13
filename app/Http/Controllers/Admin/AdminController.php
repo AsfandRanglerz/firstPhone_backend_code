@@ -94,7 +94,7 @@ class AdminController extends Controller
             SubAdmin::find(Auth::guard('subadmin')->id())->update($data);
         }
 
-        return back()->with('success', 'Profile updated successfully');
+        return back()->with('success', 'Profile Updated Successfully');
     }
 
     public function forgetPassword()
@@ -114,7 +114,7 @@ class AdminController extends Controller
         }
 
         if (!$adminExists && !$subAdminExists) {
-            return back()->withErrors(['email' => 'The email address is not registered with any admin or subadmin.']);
+            return back()->withErrors(['email' => 'The Email Adress Is Not Registered With Any Admin Or Subadmin']);
         }
 
         $emailToUse = $adminExists ? $adminExists->email : $subAdminExists->email;
@@ -123,7 +123,7 @@ class AdminController extends Controller
 
         // $exists = DB::table('password_resets')->where('email', $request->email)->first();
         if ($exists) {
-            return back()->with('error', 'Reset Password link has been already sent');
+            return back()->with('error', 'Reset Password Link Has Been Already Sent');
             // dd($subAdminExists);
         } else {
             $token = Str::random(30);
@@ -158,7 +158,7 @@ class AdminController extends Controller
         // return $request;
         if ($request->password != $request->confirmPassword) {
             // return $request;
-            return back()->with('error', 'Password and confirm password does not match');
+            return back()->with('error', 'Password And Confirm Password Does Not Match');
         }
         $password = bcrypt($request->password);
         $adminExists = Admin::where('email', $request->email)->first();

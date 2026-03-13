@@ -108,7 +108,7 @@ public function update(Request $request, $id)
         $contact->save();
 
         // 🔙 Redirect or respond
-        return redirect('admin/admin/contact-us')->with('success', 'Contact us updated successfully');
+        return redirect('admin/admin/contact-us')->with('success', 'Contact Us Updated Successfully');
         
     }
 }
