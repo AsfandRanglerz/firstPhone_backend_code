@@ -558,8 +558,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 'total'    => $quantity * $orderItem->price,
             ];
         }
-
-        $response['total_amount'] = collect($response['products'])->sum('total');
+        $shippingPrice = $order->delivery_method === 'go_shop' ? 0 : 200;
+        $response['total_amount'] = collect($response['products'])->sum('total') + $shippingPrice; // Adding fixed shipping charge
 
         return $response;
     }
