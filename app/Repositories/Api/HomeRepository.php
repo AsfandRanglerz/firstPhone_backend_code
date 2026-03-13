@@ -11,7 +11,6 @@ use App\Repositories\Api\Interfaces\HomeRepositoryInterface;
 
 class HomeRepository implements HomeRepositoryInterface
 {
-     
     public function getNearbyListings($request)
     {
         $customerLat = $request->query('latitude');

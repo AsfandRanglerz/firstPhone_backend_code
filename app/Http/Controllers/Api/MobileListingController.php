@@ -52,6 +52,7 @@ public function getmobileListing()
             return [
                 'id' => $listing->id,
                 'brand' => $listing->brand?->name,
+                'model' => $listing->model?->name,
                 'vendor' => $listing->vendor?->name,
                 'price' => $listing->price,
                 'stock' => $listing->stock,

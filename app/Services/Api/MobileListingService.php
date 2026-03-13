@@ -147,6 +147,7 @@ public function getcustomermobileListing()
                 return [
                     'id' => $listing->id,
                     'model' => $listing->model ? $listing->model : null,
+                    'brand' => $listing->brand ? $listing->brand : null,
                     'customer' => $listing->customer ? $listing->customer->name : null,
                     'price' => $listing->price,
                     'image' => $listing->image 

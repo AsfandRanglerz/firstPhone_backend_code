@@ -1,5 +1,5 @@
 <form id="apg" method="POST"
-action="https://sandbox.bankalfalah.com/SSO/SSO/SSO">
+action="https://payments.bankalfalah.com/SSO/SSO/SSO">
 
 <input type="hidden" name="AuthToken" value="{{ $authToken }}">
 <input type="hidden" name="RequestHash" value="{{ $requestHash }}">
@@ -12,8 +12,8 @@ action="https://sandbox.bankalfalah.com/SSO/SSO/SSO">
 <input type="hidden" name="MerchantUsername" value="{{ env('APG_USERNAME') }}">
 <input type="hidden" name="MerchantPassword" value="{{ env('APG_PASSWORD') }}">
 <input type="hidden" name="TransactionTypeId" value="3">
-<input type="hidden" name="TransactionReferenceNumber" value="{{ $payment->reference }}">
-<input type="hidden" name="TransactionAmount" value="{{ $payment->amount }}">
+<input type="hidden" name="TransactionReferenceNumber" value="{{ $reference }}">
+<input type="hidden" name="TransactionAmount" value="{{ $amount }}">
 
 </form>
 
