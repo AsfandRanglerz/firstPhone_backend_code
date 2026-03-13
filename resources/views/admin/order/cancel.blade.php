@@ -236,7 +236,7 @@
                                 $('#cancel_order_id').val(id);
                                 $('#approveFileModal').modal('show');
                             } else if (res.delivery_method === 'approved_direct') {
-                                toastr.success("Cancel order approved successfully");
+                                toastr.success("Request Approved & Transaction Proof Uploaded");
                                 location.reload();
                             }
                         },
@@ -287,7 +287,7 @@
                         }
                     },
                     error: function() {
-                        toastr.error("Failed to approve cancel order");
+                        toastr.error("Failed To Approve Cancel Order");
                         submitBtn.prop('disabled', false).html(originalText);
                     }
                 });
@@ -306,7 +306,7 @@
                         if (data.success) {
                             if (newStatus === 'rejected')
                             {
-                                toastr.success('Cancel order rejected successfully');
+                                toastr.success('Cancel Order Rejected Successfully');
                             }
                             location.reload();
                         } else {

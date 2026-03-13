@@ -42,7 +42,7 @@ class SubscriptionPlanController extends Controller
     public function update(UpdateSubscriptionPlanRequest $request, $id)
     {
         $this->subscriptionPlanRepo->update($id, $request->validated());
-        return redirect()->route('subscription.index')->with('success', 'Subscription plan updated successfully');
+        return redirect()->route('subscription.index')->with('success', 'Subscription Plan Updated Successfully');
     }
 
     public function delete($id)

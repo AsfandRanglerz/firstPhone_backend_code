@@ -224,7 +224,7 @@
                             $(newRows.reverse()).prependTo($(table.table().body()));
                         }
 
-                        toastr.success('Brand created successfully');
+                        toastr.success('Brand Created Successfully');
                         $('#brandModal').modal('hide');
                     },
                     error: function(xhr) {
@@ -308,7 +308,7 @@
                     data: $(this).serialize(),
                     success: function(response) {
                         updateBrandInTable(response.data);
-                        toastr.success('Brand updated successfully');
+                        toastr.success('Brand Updated Successfully');
                         $('#editModal').modal('hide');
                     },
                     error: function(xhr) {
@@ -356,7 +356,7 @@
                             },
                             success: function() {
                                 table.row($(`#brand-row-${id}`)).remove().draw();
-                                toastr.success('Brand deleted successfully');
+                                toastr.success('Brand Deleted Successfully');
                             },
                             error: function() {
                                 toastr.error('Delete failed.');

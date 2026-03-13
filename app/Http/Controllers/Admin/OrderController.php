@@ -230,6 +230,6 @@ class OrderController extends Controller
         $cancelOrder->delete();
 
         return redirect()->route('cancel-order.index')
-            ->with('success', 'Cancel order deleted successfully');
+            ->with('success', 'Cancel Order Deleted Successfully');
     }
 }

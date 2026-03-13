@@ -46,7 +46,7 @@ class RoleController extends Controller
         $role = Role::create([
             'name' => $request->name,
         ]);
-        return redirect('admin/roles')->with('message', 'Role created successfully');
+        return redirect('admin/roles')->with('message', 'Role Created Successfully');
     }
 
 
@@ -55,7 +55,7 @@ class RoleController extends Controller
         $find = Role::find($id);
         if ($find) {
             $find->delete();
-            return redirect()->back()->with('success', 'Role deleted successfully');
+            return redirect()->back()->with('success', 'Role Deleted Successfully');
         } else {
             return redirect()->back()->with('error', 'Role not found');
         }
@@ -119,7 +119,7 @@ class RoleController extends Controller
             }
         }
 
-        return redirect('/admin/roles')->with('success', 'Permissions saved successfully');
+        return redirect('/admin/roles')->with('success', 'Permissions Saved Successfully');
     }
 
 

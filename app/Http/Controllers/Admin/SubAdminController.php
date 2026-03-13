@@ -116,7 +116,7 @@ $validatedData = $validator->validated();
     ];
     // Mail::to($request->email)->send(new SubAdminLoginPassword($data));
 
-    return redirect()->route('subadmin.index')->with(['success' => 'Sub admin created successfully']);
+    return redirect()->route('subadmin.index')->with(['success' => 'Sub Admin Created Sccessfully']);
 }
 
 
@@ -183,14 +183,14 @@ $validatedData = $validator->validated();
          // Single role update
         $subAdmin->roles()->sync([$request->role]);
 
-        return redirect()->route('subadmin.index')->with('success', 'Sub admin updated successfully');
+        return redirect()->route('subadmin.index')->with('success', 'Sub Admin Updated Successfully');
     }
 
     public function destroy($id)
     {
         // return $id;
         SubAdmin::destroy($id);
-        return redirect()->route('subadmin.index')->with(['success' => 'Sub admin deleted successfully']);
+        return redirect()->route('subadmin.index')->with(['success' => 'Sub Admin Deleted Successfully']);
     }
 
     public function updatePermissions(Request $request, $id)
@@ -218,7 +218,7 @@ $validatedData = $validator->validated();
 
         SubAdminPermission::insert($permissions);
 
-        return redirect()->route('subadmin.index')->with('message', 'Permissions updated successfully');
+        return redirect()->route('subadmin.index')->with('message', 'Permissions Updated Successfully');
     }
 
     public function StatusChange(Request $request)
@@ -239,7 +239,7 @@ $validatedData = $validator->validated();
 
     return response()->json([
         'success' => true,
-        'message' => $request->status ? 'Status activated successfully' : 'Status Deactivated Successfully',
+        'message' => $request->status ? 'Status Activated Successfully' : 'Status Deactivated Successfully',
     ]);
 }
 
