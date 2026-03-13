@@ -35,6 +35,10 @@
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
 }
 
+.carousel-control-next-icon, .carousel-control-prev-icon {
+    background-color: black !important;
+}
+
 *,
 ::after,
 ::before {

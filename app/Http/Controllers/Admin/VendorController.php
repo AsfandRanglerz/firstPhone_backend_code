@@ -66,7 +66,7 @@ class VendorController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Status updated successfully',
+            'message' => 'Status Updated Successfully',
             'new_status' => ucfirst($vendor->status),
         ]);
     }
