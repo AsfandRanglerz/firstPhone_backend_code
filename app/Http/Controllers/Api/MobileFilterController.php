@@ -383,6 +383,10 @@ class MobileFilterController extends Controller
                 $query->where('vendor_mobiles.model_id',$request->model_id);
             }
 
+            if($request->filled('vendor_id')){
+                $query->where('vendor_mobiles.vendor_id',$request->vendor_id);
+            }
+
             $query->where('vendor_mobiles.status',0);
 
             /*
