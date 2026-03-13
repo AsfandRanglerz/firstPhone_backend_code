@@ -49,7 +49,7 @@ class AuthController extends Controller
             ],
             $remember_me
         )) {
-            return redirect('admin/dashboard')->with('success', 'Logged In Successfully!');
+            return redirect('admin/dashboard')->with('success', 'Logged In Successfully');
         }
 
         $subAdmin = SubAdmin::where('email', $request->email)->first();
@@ -61,17 +61,17 @@ class AuthController extends Controller
            if ($subAdmin->status == 1) {
                 auth()->guard('subadmin')->login($subAdmin, $remember_me);
                 
-                return redirect('admin/dashboard')->with('success', 'Sub Admin Login Successfully!');
+                return redirect('admin/dashboard')->with('success', 'Sub Admin Logged In Successfully');
             } else {
                 // Check if user is already logged in
                 
                 
-                return redirect('admin/')->with('error', 'Your account is deactivated. Please contact the admin.');
+                return redirect('admin/')->with('error', 'Your Account Is Deactivated. Please Contact The Admin');
             }
         }
 
        
 
-        return back()->with('error', 'Invalid email or password');
+        return back()->with('error', 'Invalid Email Or Password');
     }
 }
