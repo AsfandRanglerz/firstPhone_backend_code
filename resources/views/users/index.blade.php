@@ -14,7 +14,7 @@
                             <div class="card-body table-striped table-bordered table-responsive">
                                 <div class="d-flex justify-content-between mb-3">
                                 @if (Auth::guard('admin')->check() ||
-                                        ($sideMenuPermissions->has('Users') && $sideMenuPermissions['Users']->contains('create')))
+                                        ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('create')))
                                     <a class="btn btn-primary mb-3 text-white"
                                         href="{{ url('/admin/user-create') }}">Create</a>
                                 @endif
@@ -68,7 +68,7 @@
                                                 <td>
                                                     <div class="d-flex gap-1">
                                                         @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Users') && $sideMenuPermissions['Users']->contains('edit')))
+                                                                ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('edit')))
                                                             <a href="{{ route('user.edit', $user->id) }}"
                                                                 class="btn btn-primary" style="margin-left: 10px;">
                                                                 <i class="fa fa-edit"></i>
@@ -76,7 +76,7 @@
                                                         @endif
 
                                                         @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Users') && $sideMenuPermissions['Users']->contains('delete')))
+                                                                ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('delete')))
                                                             <form id="delete-form-{{ $user->id }}"
                                                                 action="{{ route('user.delete', $user->id) }}"
                                                                 method="POST">

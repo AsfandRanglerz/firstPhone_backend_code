@@ -37,46 +37,60 @@
             @endif
 
             {{--  Users --}}
-            @if (Auth::guard('admin')->check() ||
-                    ($sideMenuPermissions->has('Users') && $sideMenuPermissions['Users']->contains('view')))
-                <li class="dropdown">
-                    <a href="#" class="menu-toggle nav-link has-dropdown">
-                        <i data-feather="layout"></i> <!-- Icon for header section -->
-                        <span>Users</span>
-                        <div class="badge {{ request()->is('admin.vendors*') ? 'bg-white text-dark' : 'bg-primary text-white' }}"
+           @if (
+    Auth::guard('admin')->check() ||
+    ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('view')) ||
+    ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('view'))
+)
+<li class="dropdown">
+    <a href="#" class="menu-toggle nav-link has-dropdown">
+        <i data-feather="layout"></i>
+        <span>Users</span>
+
+        <div class="badge {{ request()->is('admin/vendor*') ? 'bg-white text-dark' : 'bg-primary text-white' }}"
+            style="display: inline-flex; justify-content: center; align-items: center; 
+            min-width: 22px; height: 22px; border-radius: 50%; 
+            font-size: 12px; margin-left: 5px; margin-right:20px; padding: 3px;">
+            {{ $pendingVendorCount }}
+        </div>
+    </a>
+
+    <ul class="dropdown-menu {{ request()->is('admin/user*') || request()->is('admin/vendor*') ? 'show' : '' }}">
+
+        {{-- Customers --}}
+        @if (Auth::guard('admin')->check() ||
+            ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('view')))
+            <li class="{{ request()->is('admin/user*') ? 'active' : '' }}">
+                <a href="{{ url('admin/user') }}" class="nav-link">
+                    <i data-feather="users"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+        @endif
+
+        {{-- Vendors --}}
+        @if (Auth::guard('admin')->check() ||
+            ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('view')))
+            <li class="{{ request()->is('admin/vendor*') ? 'active' : '' }}">
+                <a href="{{ url('admin/vendor') }}" class="nav-link">
+                    <i data-feather="users"></i>
+                    <span>Vendors</span>
+
+                    <div id="vendorpendingCounter"
+                        class="badge {{ request()->is('admin/vendor*') ? 'bg-white text-dark' : 'bg-primary text-white' }}"
                         style="display: inline-flex; justify-content: center; align-items: center; 
                         min-width: 22px; height: 22px; border-radius: 50%; 
-                        text-align: center; font-size: 12px; margin-left: 5px; margin-right:20px; padding: 3px;">
-                        {{ $pendingVendorCount }}
-                        </div>
-                    </a>
-                    <ul
-                        class="dropdown-menu {{ request()->is('admin/user*') || request()->is('admin/vendor*') ? 'show' : '' }}">
-                        <li class="dropdown {{ request()->is('admin/user*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/user') }}" class="nav-link">
-                                <i data-feather="users"></i>
-                                <span>Customers</span>
-                            </a>
-                        </li>
-            @endif
-            @if (Auth::guard('admin')->check() ||
-                    ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('view')))
-                <li class="dropdown {{ request()->is('admin/vendor*') ? 'active' : '' }}">
-                    <a href="{{ url('admin/vendor') }}" class="nav-link">
-                        <i data-feather="users"></i>
-                        <span>Vendors</span>
-                         <div id="vendorpendingCounter"
-                        class="badge {{ request()->is('admin/vendor*') ? 'bg-white text-dark' : 'bg-primary text-white' }} rounded-circle"
-                        style="display: inline-flex; justify-content: center; align-items: center; 
-                            min-width: 22px; height: 22px; border-radius: 50%; 
-                            text-align: center; font-size: 12px; margin-left: 5px; padding: 3px;">
+                        font-size: 12px; margin-left: 5px; padding: 3px;">
                         0
                     </div>
-                    </a>
-                </li>
-            @endif
-        </ul>
+                </a>
+            </li>
+        @endif
 
+    </ul>
+</li>
+@endif
+        
         @if (Auth::guard('admin')->check() ||
                 ($sideMenuPermissions->has('Brands') && $sideMenuPermissions['Brands']->contains('view')))
             <li class="dropdown {{ request()->is('admin/brands*') ? 'active' : '' }}">
@@ -87,6 +101,8 @@
                 </a>
             </li>
         @endif
+
+       
 
         {{-- Subscription Plans --}}
         @if (Auth::guard('admin')->check() ||
@@ -102,7 +118,7 @@
         @endif
 
         @if (Auth::guard('admin')->check() ||
-                ($sideMenuPermissions->has('MobileListing') && $sideMenuPermissions['MobileListing']->contains('view')))
+                ($sideMenuPermissions->has('Customer Mobiles') && $sideMenuPermissions['Customer Mobiles']->contains('view')))
             <li class="dropdown {{ request()->is('admin/mobilelisting*') ? 'active' : '' }}">
                 <a href="{{ url('admin/mobilelisting') }}" class="nav-link">
                     <i data-feather="smartphone"></i>
@@ -119,7 +135,7 @@
         @endif
 
         @if (Auth::guard('admin')->check() ||
-                ($sideMenuPermissions->has('VendorMobile') && $sideMenuPermissions['VendorMobile']->contains('view')))
+                ($sideMenuPermissions->has('Vendor Mobiles') && $sideMenuPermissions['Vendor Mobiles']->contains('view')))
             <li class="dropdown {{ request()->is('admin/listingvendor*') ? 'active' : '' }}">
                 <a href="{{ url('admin/listingvendor') }}" class="nav-link">
                     <i data-feather="smartphone"></i>
@@ -129,7 +145,7 @@
         @endif
 
         @if (Auth::guard('admin')->check() ||
-                ($sideMenuPermissions->has('MobileRequest') && $sideMenuPermissions['MobileRequest']->contains('view')))
+                ($sideMenuPermissions->has('Mobile Requests') && $sideMenuPermissions['Mobile Requests']->contains('view')))
             <li class="dropdown {{ request()->is('admin/mobilerequest*') ? 'active' : '' }}">
                 <a href="{{ url('admin/mobilerequest') }}" class="nav-link">
                     <i data-feather="smartphone"></i>
@@ -183,7 +199,7 @@
 
          {{-- Sales Reporting --}}
         @if (Auth::guard('admin')->check() ||
-                ($sideMenuPermissions->has('Sales Report') && $sideMenuPermissions['Sales Report']->contains('view')))
+                ($sideMenuPermissions->has('Sales Reporting') && $sideMenuPermissions['Sales Reporting']->contains('view')))
             <li class="dropdown {{ request()->is('admin/reports*') ? 'active' : '' }}">
                 <a href="{{ route('reports.index') }}" class="nav-link">
                     <i data-feather="bar-chart-2"></i>
@@ -250,7 +266,7 @@
 
         {{--  Privacy Policy --}}
         @if (Auth::guard('admin')->check() ||
-                ($sideMenuPermissions->has('Privacy & Policy') && $sideMenuPermissions['Privacy & Policy']->contains('view')))
+                ($sideMenuPermissions->has('Privacy Policy') && $sideMenuPermissions['Privacy Policy']->contains('view')))
             <li class="dropdown {{ request()->is('admin/privacy-policy*') ? 'active' : '' }}">
                 <a href="{{ url('admin/privacy-policy') }}" class="nav-link"><i data-feather="shield"></i><span>Privacy Policy</span></a>
             </li>

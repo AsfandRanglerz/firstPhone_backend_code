@@ -188,6 +188,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get vendor order list api
      Route::get('/vendor-orderlist/{orderId}', [OrderController::class, 'vendorOrderList']);
 
+     Route::post('/mobile-filters-data', [MobileFilterController::class, 'getData']);
+     
+     Route::get('/customer-last-search', [MobileFilterController::class, 'getLastSearch']);
 });
 
 // customer side Home Screen API
@@ -197,7 +200,7 @@ Route::get('/listings/nearby', [HomeController::class, 'getNearbyListings']);
 //filter searchers api
 Route::get('/models/{brand_id}', [MobileFilterController::class, 'getModels']);
 Route::get('/brands', [MobileFilterController::class, 'getBrands']);
-Route::post('/mobile-filters-data', [MobileFilterController::class, 'getData']);
+
 Route::get('/getminmaxprice', [MobileFilterController::class, 'getMinMaxPrice']);
 
 

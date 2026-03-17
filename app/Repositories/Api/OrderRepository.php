@@ -399,7 +399,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 $images = json_decode($item->product->image ?? '[]', true);
 
                 return [
-                    'vendor_name' => $item->vendor->name ?? null,       
+                    'vendor_name' => $item->vendor->name ?? null, 
+                    'order_item_id' => $item->id,      
                     'product_id' => $item->product_id,
                     'title'      => trim(
                         ($item->product->brand->name ?? '') . ' ' .

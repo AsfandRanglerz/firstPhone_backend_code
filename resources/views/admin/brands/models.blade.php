@@ -13,10 +13,12 @@
                                 <h4>{{ $brand->name }} - Models</h4>
                             </div>
                             <div class="card-body table-striped table-bordered table-responsive">
+                                 @if (Auth::guard('admin')->check() ||
+                                        ($sideMenuPermissions->has('Models') && $sideMenuPermissions['Models']->contains('create')))
                                 {{-- Create Button --}}
                                 <button class="btn mb-3" style="background-color: #009245;"
                                     id="openCreateModal">Create</button>
-
+                                @endif
                                 <table class="table" id="brandsTable">
                                     <thead>
                                         <tr>
@@ -38,11 +40,16 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex gap-1">
+                                                         @if (Auth::guard('admin')->check() ||
+                                                        ($sideMenuPermissions->has('Models') && $sideMenuPermissions['Models']->contains('edit')))
                                                         <button class="btn btn-primary editBrand"
                                                             data-id="{{ $model->id }}"
                                                             data-name="{{ is_array($model->name) ? implode(', ', $model->name) : $model->name }}">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
+                                                        @endif
+                                                        @if (Auth::guard('admin')->check() ||
+                                                        ($sideMenuPermissions->has('Models') && $sideMenuPermissions['Models']->contains('delete')))
                                                         @if (!$existModel)
                                                         <button class="btn deleteBrand" style="background-color: #009245;"
                                                             data-id="{{ $model->id }}">
@@ -56,6 +63,7 @@
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
 
+                                                         @endif
                                                          @endif
                                                     </div>
                                                 </td>
