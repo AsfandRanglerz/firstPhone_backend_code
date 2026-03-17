@@ -148,6 +148,12 @@ public function Chat(Request $request)
             $receiver = Vendor::find($request->receiver_id);
             $targetType = Vendor::class;
         }
+        // $sender = null;
+        // if ($senderType === 'customer') {
+        //     $sender = User::find($request->sender_id);
+        // } else {
+        //     $sender = Vendor::find($request->sender_id);
+        // }
 
         if (!$receiver) {
             return response()->json(['error' => 'Receiver not found'], 404);
@@ -178,6 +184,10 @@ public function Chat(Request $request)
                 'chat_id' => $request->chat_id,
                 'sender_id' => $sender->id,
                 'sender_type' => $senderType,
+                'sender_name' => $sender->name,
+                'sender_email' => $sender->email,
+                'sender_phone' => $sender->phone,
+                'sender_image' => $sender->image,
                 'receiver_id' => $receiver->id,
                 'receiver_type' => $request->receiver_type,
                 'type' => 'chat'

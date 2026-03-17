@@ -11,7 +11,83 @@ use App\Repositories\Api\Interfaces\HomeRepositoryInterface;
 
 class HomeRepository implements HomeRepositoryInterface
 {
-    public function getNearbyListings($request)
+    // public function getNearbyListings($request)
+    // {
+    //     $customerLat = $request->query('latitude');
+    //     $customerLng = $request->query('longitude');
+
+    //     if (!$customerLat || !$customerLng) {
+    //         throw new \Exception('Latitude and Longitude are required to fetch nearby listings');
+    //     }
+
+    //     $radius = $request->query('radius', 50);
+    //     $search = $request->query('search');
+    //     $startDate = $request->query('start_date');
+    //     $endDate = $request->query('end_date');
+
+    //     $query = VendorMobile::with(['brand', 'model', 'vendor'])
+    //         // ->where('status', 0)
+    //         ->join('vendors', 'vendor_mobiles.vendor_id', '=', 'vendors.id')
+    //         ->select(
+    //             'vendor_mobiles.id',
+    //             'vendor_mobiles.vendor_id',
+    //             'vendor_mobiles.brand_id',
+    //             'vendor_mobiles.model_id',
+    //             'vendor_mobiles.price',
+    //             'vendor_mobiles.image',
+    //             'vendor_mobiles.stock',
+    //             'vendor_mobiles.location',
+    //             'vendors.latitude',
+    //             'vendors.longitude',
+    //             'vendors.repair_service',
+    //         )
+    //         ->selectRaw("
+    //             (6371 * acos(
+    //                 cos(radians(?)) * cos(radians(vendors.latitude)) *
+    //                 cos(radians(vendors.longitude) - radians(?)) +
+    //                 sin(radians(?)) * sin(radians(vendors.latitude))
+    //             )) AS distance
+    //         ", [$customerLat, $customerLng, $customerLat])
+    //         ->having('distance', '<=', $radius)
+    //         ->orderBy('distance', 'asc')
+    //         ->where('vendor_mobiles.status', 0)
+    //         ->where('vendor_mobiles.stock', '>', 0);
+
+    //     if (!empty($search)) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('vendor_mobiles.price', 'LIKE', "%{$search}%")
+    //             ->orWhere('vendor_mobiles.location', 'LIKE', "%{$search}%")
+    //             ->orWhere('vendor_mobiles.storage', 'LIKE', "%{$search}%")
+    //             ->orWhere('vendor_mobiles.ram', 'LIKE', "%{$search}%")
+    //             ->orWhereHas('model', fn($m) => $m->where('name', 'LIKE', "%{$search}%"));
+    //         });
+    //     }
+
+    //     if (!empty($startDate) && !empty($endDate)) {
+    //         $query->whereBetween('vendor_mobiles.created_at', [$startDate, $endDate]);
+    //     }
+
+    //     return $query->get()->map(function ($listing) {
+    //         $images = json_decode($listing->image, true) ?? [];
+
+    //         return [
+    //             'id'             => $listing->id,
+    //             // 'vendor'         => $listing->vendor?->name,
+    //             'vendor_id'     => $listing->vendor?->id,
+    //             'vendor_name'   => $listing->vendor?->name,
+    //             'vendor_image'  => $listing->vendor?->image,
+    //             'vendor_phone'  => $listing->vendor?->phone,
+    //             'brand'         => $listing->brand?->name,
+    //             'model'          => $listing->model?->name,
+    //             'price'          => $listing->price,
+    //             'distance'       => round($listing->distance, 1) . ' km',
+    //             'repair_service' => $listing->vendor?->repair_service,
+    //             'image'          => isset($images[0]) ? asset($images[0]) : null,
+    //         ];
+    //     });
+    // }
+
+     public function getNearbyListings($request)
     {
         $customerLat = $request->query('latitude');
         $customerLng = $request->query('longitude');
@@ -20,13 +96,10 @@ class HomeRepository implements HomeRepositoryInterface
             throw new \Exception('Latitude and Longitude are required to fetch nearby listings');
         }
 
-        $radius = $request->query('radius', 50);
-        $search = $request->query('search');
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
+        // Default radius 50 km
+        $radius = 50;
 
         $query = VendorMobile::with(['brand', 'model', 'vendor'])
-            // ->where('status', 0)
             ->join('vendors', 'vendor_mobiles.vendor_id', '=', 'vendors.id')
             ->select(
                 'vendor_mobiles.id',
@@ -35,54 +108,47 @@ class HomeRepository implements HomeRepositoryInterface
                 'vendor_mobiles.model_id',
                 'vendor_mobiles.price',
                 'vendor_mobiles.image',
-                'vendor_mobiles.stock',
                 'vendor_mobiles.location',
                 'vendors.latitude',
                 'vendors.longitude',
-                'vendors.repair_service',
-            )
-            ->selectRaw("
-                (6371 * acos(
-                    cos(radians(?)) * cos(radians(vendors.latitude)) *
-                    cos(radians(vendors.longitude) - radians(?)) +
-                    sin(radians(?)) * sin(radians(vendors.latitude))
-                )) AS distance
-            ", [$customerLat, $customerLng, $customerLat])
-            ->having('distance', '<=', $radius)
-            ->orderBy('distance', 'asc')
-            ->where('vendor_mobiles.status', 0)
-            ->where('vendor_mobiles.stock', '>', 0);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('vendor_mobiles.price', 'LIKE', "%{$search}%")
-                ->orWhere('vendor_mobiles.location', 'LIKE', "%{$search}%")
-                ->orWhere('vendor_mobiles.storage', 'LIKE', "%{$search}%")
-                ->orWhere('vendor_mobiles.ram', 'LIKE', "%{$search}%")
-                ->orWhereHas('model', fn($m) => $m->where('name', 'LIKE', "%{$search}%"));
-            });
-        }
-
-        if (!empty($startDate) && !empty($endDate)) {
-            $query->whereBetween('vendor_mobiles.created_at', [$startDate, $endDate]);
-        }
+                'vendors.repair_service'
+            );
+            if($customerLat && $customerLng){
+                $query->selectRaw("
+                    (
+                        6371 * acos(
+                            least(1,
+                                greatest(-1,
+                                    cos(radians(?)) *
+                                    cos(radians(vendors.latitude)) *
+                                    cos(radians(vendors.longitude) - radians(?)) +
+                                    sin(radians(?)) *
+                                    sin(radians(vendors.latitude))
+                                )
+                            )
+                        )
+                    ) AS distance
+                ", [$customerLat, $customerLng, $customerLat])
+                ->havingRaw('distance <= ?', [$radius])
+                ->orderBy('distance','asc')
+                ->get();
+            }
 
         return $query->get()->map(function ($listing) {
             $images = json_decode($listing->image, true) ?? [];
 
             return [
                 'id'             => $listing->id,
-                // 'vendor'         => $listing->vendor?->name,
-                'vendor_id'     => $listing->vendor?->id,
-                'vendor_name'   => $listing->vendor?->name,
-                'vendor_image'  => $listing->vendor?->image,
-                'vendor_phone'  => $listing->vendor?->phone,
-                'brand'         => $listing->brand?->name,
+                'vendor_id'      => $listing->vendor?->id,
+                'vendor_name'    => $listing->vendor?->name,
+                'vendor_image'   => $listing->vendor?->image,
+                'vendor_phone'   => $listing->vendor?->phone,
+                'brand'          => $listing->brand?->name,
                 'model'          => $listing->model?->name,
                 'price'          => $listing->price,
                 'distance'       => round($listing->distance, 1) . ' km',
                 'repair_service' => $listing->vendor?->repair_service,
-                'image'          => isset($images[0]) ? asset($images[0]) : null,
+                'image'          => $images[0] ?? null,
             ];
         });
     }
@@ -191,6 +257,139 @@ class HomeRepository implements HomeRepositoryInterface
 
 
    public function getDeviceDetails($id)
+    {
+        $orderItem = OrderItem::findOrFail($id);
+
+        // Try getting product from vendor_mobiles
+        $listing = VendorMobile::with(['brand','model'])
+        ->find($orderItem->product_id);
+
+
+         // If product deleted → fallback to order_items
+    if (!$listing) {
+
+            $images = $orderItem->image
+            ? json_decode($orderItem->image, true)
+            : null;
+
+        $videos = $orderItem->video
+            ? json_decode($orderItem->video, true)
+            : null;
+
+        return [
+            'status' => 'success',
+
+            'specifications' => [[
+                'product_id' => $orderItem->product_id,
+                'brand'      => $orderItem->brand_name,
+                'model'      => $orderItem->model_name,
+                'storage'    => $orderItem->storage,
+                'price'      => $orderItem->price,
+                'condition'  => $orderItem->condition,
+                'color'      => $orderItem->color,
+                'ram'        => $orderItem->ram,
+                'processor'  => $orderItem->processor,
+                'display'    => $orderItem->display,
+                'charging'   => $orderItem->charging,
+                'refresh_rate' => $orderItem->refresh_rate,
+                'main_camera'  => $orderItem->main_camera,
+                'ultra_camera' => $orderItem->ultra_camera,
+                'telephoto_camera' => $orderItem->telephoto_camera,
+                'front_camera' => $orderItem->front_camera,
+                'build'        => $orderItem->build,
+                'wireless'     => $orderItem->wireless,
+                'pta_approved' => $orderItem->pta_approved == 0 ? 'Approved' : 'Not Approved',
+                'stock'        => $orderItem->stock,
+            ]],
+
+            'other_features' => [[
+                'ai_features'    => $orderItem->ai_features,
+                'battery_health' => $orderItem->battery_health,
+                'os_version'     => $orderItem->os_version,
+            ]],
+
+            'warranty_details' => [[
+                'warranty_start' => $orderItem->warranty_start,
+                'warranty_end'   => $orderItem->warranty_end,
+            ]],
+
+            'description' => [$orderItem->about],
+
+            'images' => $images
+                ? array_map(fn($p) => asset($p), $images)
+                : null,
+
+            'videos' => $videos
+                ? array_map(fn($p) => asset($p), $videos)
+                : null,
+        ];
+    }
+
+       // NORMAL PRODUCT FLOW
+    $images = empty($listing->image)
+        ? null
+        : (is_array(json_decode($listing->image, true))
+            ? json_decode($listing->image, true)
+            : [$listing->image]);
+
+    $videos = empty($listing->video)
+        ? null
+        : (is_array(json_decode($listing->video, true))
+            ? json_decode($listing->video, true)
+            : [$listing->video]);
+
+    return [
+        'status' => 'success',
+
+        'specifications' => [[
+            'product_id' => $listing->id,
+            'brand_id'   => $listing->brand->id ?? null,
+            'brand'      => $listing->brand->name ?? null,
+            'model_id'   => $listing->model->id ?? null,
+            'model'      => $listing->model->name ?? null,
+            'storage'    => $listing->storage,
+            'price'      => $listing->price,
+            'condition'  => $listing->condition,
+            'color'      => $listing->color,
+            'ram'        => $listing->ram,
+            'processor'  => $listing->processor,
+            'display'    => $listing->display,
+            'charging'   => $listing->charging,
+            'refresh_rate' => $listing->refresh_rate,
+            'main_camera'  => $listing->main_camera,
+            'ultra_camera' => $listing->ultra_camera,
+            'telephoto_camera' => $listing->telephoto_camera,
+            'front_camera' => $listing->front_camera,
+            'build'        => $listing->build,
+            'wireless'     => $listing->wireless,
+            'pta_approved' => $listing->pta_approved == 0 ? 'Approved' : 'Not Approved',
+            'stock'        => $listing->stock,
+        ]],
+
+        'other_features' => [[
+            'ai_features'    => $listing->ai_features,
+            'battery_health' => $listing->battery_health,
+            'os_version'     => $listing->os_version,
+        ]],
+
+        'warranty_details' => [[
+            'warranty_start' => $listing->warranty_start,
+            'warranty_end'   => $listing->warranty_end,
+        ]],
+
+        'description' => [$listing->about],
+
+        'images' => $images
+            ? array_map(fn($p) => asset($p), $images)
+            : null,
+
+        'videos' => $videos
+            ? array_map(fn($p) => asset($p), $videos)
+            : null,
+    ];
+}
+
+ public function getvendorDeviceDetails($id)
     {
         $listing = VendorMobile::with(['brand', 'model'])
             ->where('id', $id)

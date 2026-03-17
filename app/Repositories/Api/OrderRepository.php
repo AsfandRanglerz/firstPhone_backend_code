@@ -60,7 +60,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'vendor_image'  => optional($order->items->first()?->vendor)->image,
                 'vendor_phone'  => optional($order->items->first()?->vendor)->phone,
                 'total_price'     => $order->total_amount,
-                'total_products'  => $order->items->sum('quantity'),
+                'total_products' => $order->items()->distinct('product_id')->count('product_id'),
                 'date'            => Carbon::parse($order->created_at)->format('F d, Y'),
                 'time' => $order->created_at->format('h:i A'),
                 'order_status'    => $order->order_status,
@@ -230,6 +230,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         // $total = $subtotal + $shippingCharges;
         $total = $subtotal + ($order->shipping_charges ?? 0);
         // $total = $subtotal;
+        $vendor = optional($order->items->first()?->vendor);
         return [
             'id'       => $order->id,
             'order_date'     => Carbon::parse($order->created_at)->format('F d, Y'),
@@ -244,19 +245,27 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'street_address' => $order->shippingAddress->street_address ?? null,
             ],
             'products'       => $order->items->map(fn($item) => [
-                'product_id'  => $item->product_id,
+                'product_id'  => $item->id,
                 'vendor_name' => $item->vendor->name ?? null,
-                'product_name' => ($item->product->brand->name ?? '') . ' ' . ($item->product->model->name ?? $item->product_name),
+                'product_name' => trim(($item->brand_name ?? '') . ' ' . ($item->model_name ?? '')),
                 'price'        => $item->price,
                 'quantity'     => $item->quantity,
-                'image'        => $item->product->image
+                'image'        => $item->image
                     ? asset(
-                        is_array(json_decode($item->product->image, true))
-                            ? ltrim(json_decode($item->product->image, true)[0], '/')   // ✅ First from JSON array
-                            : ltrim(explode(',', $item->product->image)[0], '/')       // ✅ First from comma string
+                        is_array(json_decode($item->image, true))
+                            ? ltrim(json_decode($item->image, true)[0], '/')   // ✅ First from JSON array
+                            : ltrim(explode(',', $item->image)[0], '/')       // ✅ First from comma string
                     )
                     : null,
             ]),
+            'vendor' => [
+            'vendor_id'      => $vendor->id,
+            'shop_name'      => $vendor->name,
+            'user_type'      => 'vendor',
+            'vendor_address' => $vendor->location,
+            'vendor_image'   => $vendor->image,
+            'vendor_phone'   => $vendor->phone,
+        ],
             'order_status'   => $order->order_status,
             'payment_status' => $order->payment_status,
             'payment_method' => $order->delivery_method,

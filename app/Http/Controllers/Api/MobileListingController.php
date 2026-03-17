@@ -143,6 +143,68 @@ public function markAsSold($id)
 
 }
 
+public function getMobileListingById($id)
+{
+    try {
+        $customerId = Auth::id();
+        
+        $listing = MobileListing::with(['brand','model'])
+            ->where('id', $id)
+            ->first();
+
+        if (!$listing) {
+            return ResponseHelper::error(null, 'Listing not found', 'not_found', 404);
+        }
+
+        $images = $listing->image
+            ? (is_array(json_decode($listing->image, true))
+                ? json_decode($listing->image, true)
+                : [$listing->image])
+            : null;
+
+        $videos = $listing->video
+            ? (is_array(json_decode($listing->video, true))
+                ? json_decode($listing->video, true)
+                : [$listing->video])
+            : null;
+
+        return ResponseHelper::success([
+            'id' => $listing->id,
+            'brand' => $listing->brand ?? null,
+            'model' => $listing->model ?? null,
+            'price' => $listing->price,
+            'storage' => $listing->storage,
+            'ram' => $listing->ram,
+            'condition' => $listing->condition,
+            'about' => $listing->about,
+
+            'images' => $images
+                ? array_map(fn($p) => asset($p), $images)
+                : null,
+
+            'videos' => $videos
+                ? array_map(fn($p) => asset($p), $videos)
+                : null,
+
+        ], 'Mobile listing fetched successfully');
+
+    } catch (\Exception $e) {
+
+        Log::error('Mobile listing fetch error', [
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ]);
+
+        return ResponseHelper::error(
+            $e->getMessage(),
+            'Failed to fetch listing',
+            'server_error',
+            500
+        );
+    }
+}
+
 public function customerdeleteMobileListing(Request $request)
 {
     $customer = Auth::user();

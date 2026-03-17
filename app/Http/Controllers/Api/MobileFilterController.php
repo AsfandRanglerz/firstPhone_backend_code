@@ -357,15 +357,17 @@ class MobileFilterController extends Controller
                             least(1,
                                 greatest(-1,
                                     cos(radians(?)) *
-                                    cos(radians(vendors.latitude)) *
-                                    cos(radians(vendors.longitude) - radians(?)) +
+                                    cos(radians(vendor_mobiles.latitude)) *
+                                    cos(radians(vendor_mobiles.longitude) - radians(?)) +
                                     sin(radians(?)) *
-                                    sin(radians(vendors.latitude))
+                                    sin(radians(vendor_mobiles.latitude))
                                 )
                             )
                         )
                     ) AS distance
-                ", [$lat, $lng, $lat]);
+                ", [$lat, $lng, $lat])
+                ->havingRaw('distance <= ?', [$radius])
+                ->orderBy('distance','asc');
 
             }
 
@@ -464,11 +466,11 @@ class MobileFilterController extends Controller
             |--------------------------------------------------
             */
 
-            if($request->filled('latitude') && $request->filled('longitude')){
+            // if($request->filled('latitude') && $request->filled('longitude')){
 
-                $query->having('distance','<=',$radius)
-                    ->orderBy('distance','asc');
-            }
+            //     $query->having('distance','<=',$radius)
+            //         ->orderBy('distance','asc');
+            // }
 
             /*
             |--------------------------------------------------

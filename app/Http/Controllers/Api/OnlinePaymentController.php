@@ -66,13 +66,46 @@ class OnlinePaymentController extends Controller
             if (isset($products['product_id'])) {
                 $orderedListingIds[] = $products['product_id'];
                 $vendorIds[] = $products['vendor_id'];
-
+                $productData = VendorMobile::with(['brand','model'])->find($products['product_id']);
                 OrderItem::create([
                     'order_id'   => $order->id,
                     'product_id' => $products['product_id'],
                     'vendor_id'  => $products['vendor_id'],
                     'quantity'   => $products['quantity'] ?? 1,
                     'price'      => $products['price'],
+
+                    'brand_name'   => $productData->brand->name ?? null,
+                    'model_name'   => $productData->model->name ?? null,
+                    'location'     => $productData->location ?? null,
+                    'latitude'     => $productData->latitude ?? null,
+                    'longitude'    => $productData->longitude ?? null,
+                    'storage'      => $productData->storage ?? null,
+                    'ram'          => $productData->ram ?? null,
+                    'color'        => $productData->color ?? null,
+                    'condition'    => $productData->condition ?? null,
+                    'processor'    => $productData->processor ?? null,
+                    'display'      => $productData->display ?? null,
+                    'charging'     => $productData->charging ?? null,
+                    'refresh_rate' => $productData->refresh_rate ?? null,
+                    'main_camera'  => $productData->main_camera ?? null,
+                    'ultra_camera' => $productData->ultra_camera ?? null,
+                    'telephoto_camera' => $productData->telephoto_camera ?? null,
+                    'front_camera' => $productData->front_camera ?? null,
+                    'build'        => $productData->build ?? null,
+                    'wireless'     => $productData->wireless ?? null,
+                    'stock'        => $productData->stock ?? null,
+                    'sold'         => $productData->sold ?? null,
+                    'pta_approved' => $productData->pta_approved ?? null,
+                    'ai_features'  => $productData->ai_features ?? null,
+                    'battery_health' => $productData->battery_health ?? null,
+                    'os_version'   => $productData->os_version ?? null,
+                    'warranty_start' => $productData->warranty_start ?? null,
+                    'warranty_end' => $productData->warranty_end ?? null,
+
+                    'image' => $productData->image ? json_encode(json_decode($productData->image, true)) : null,
+                    'video' => $productData->video ? json_encode(json_decode($productData->video, true)) : null,
+
+                    'about' => $productData->about ?? null,
                 ]);
                 $totalAmount = $products['price'] * ($products['quantity'] ?? 1);
                 VendorMobile::where('id', $products['product_id'])->decrement('stock', $products['quantity'] ?? 1);
@@ -80,14 +113,47 @@ class OnlinePaymentController extends Controller
                 // Handle Multiple Products
                 foreach ($products as $product) {
                     $vendorIds[] = $product['vendor_id'];
-                    $orderedListingIds[] = $product['product_id'];
-
+                    $orderedListingIds[] = $product['product_id'];  
+                    $productData = VendorMobile::with(['brand','model'])->find($product['product_id']);
                     OrderItem::create([
                         'order_id'   => $order->id,
                         'product_id' => $product['product_id'],
                         'vendor_id'  => $product['vendor_id'],
                         'quantity'   => $product['quantity'] ?? 1,
                         'price'      => $product['price'],
+
+                        'brand_name'   => $productData->brand->name ?? null,
+                    'model_name'   => $productData->model->name ?? null,
+                    'location'     => $productData->location ?? null,
+                    'latitude'     => $productData->latitude ?? null,
+                    'longitude'    => $productData->longitude ?? null,
+                    'storage'      => $productData->storage ?? null,
+                    'ram'          => $productData->ram ?? null,
+                    'color'        => $productData->color ?? null,
+                    'condition'    => $productData->condition ?? null,
+                    'processor'    => $productData->processor ?? null,
+                    'display'      => $productData->display ?? null,
+                    'charging'     => $productData->charging ?? null,
+                    'refresh_rate' => $productData->refresh_rate ?? null,
+                    'main_camera'  => $productData->main_camera ?? null,
+                    'ultra_camera' => $productData->ultra_camera ?? null,
+                    'telephoto_camera' => $productData->telephoto_camera ?? null,
+                    'front_camera' => $productData->front_camera ?? null,
+                    'build'        => $productData->build ?? null,
+                    'wireless'     => $productData->wireless ?? null,
+                    'stock'        => $productData->stock ?? null,
+                    'sold'         => $productData->sold ?? null,
+                    'pta_approved' => $productData->pta_approved ?? null,
+                    'ai_features'  => $productData->ai_features ?? null,
+                    'battery_health' => $productData->battery_health ?? null,
+                    'os_version'   => $productData->os_version ?? null,
+                    'warranty_start' => $productData->warranty_start ?? null,
+                    'warranty_end' => $productData->warranty_end ?? null,
+
+                    'image' => $productData->image ? json_encode(json_decode($productData->image, true)) : null,
+                    'video' => $productData->video ? json_encode(json_decode($productData->video, true)) : null,
+
+                    'about' => $productData->about ?? null,
                     ]);
 
                     $totalAmount += $product['price'] * ($product['quantity'] ?? 1);

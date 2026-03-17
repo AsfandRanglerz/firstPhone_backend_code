@@ -242,6 +242,10 @@ class AuthRepository implements AuthRepositoryInterface
             $subscription = VendorSubscription::create([
                 'vendor_id' => $vendor->id,
                 'subscription_plan_id' => $plan->id,
+                'product_limit' => $plan->product_limit,
+                'plan_name' => $plan->name,
+                'plan_price' => $plan->price,
+                'plan_duration_days' => $plan->duration_days,
                 'start_date' => $start,
                 'end_date' => $end,
                 'is_active' => true,
