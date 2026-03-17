@@ -121,8 +121,8 @@ button.bg-warning:hover{
                                                 </td>
                                                 <td>
                                                     @foreach ($order->items as $item)
-                                                        {{ $item->product->brand->name ?? 'No Brand' }}
-                                                        {{ $item->product->model->name ?? 'No Model' }}<br> (Qty:
+                                                        {{ $item->product->brand->name ?? $item->brand_name }}
+                                                        {{ $item->product->model->name ?? $item->model_name }}<br> (Qty:
                                                         {{ $item->quantity }}, Price:
                                                         {{ number_format($item->price, 2) }})
                                                         <br>

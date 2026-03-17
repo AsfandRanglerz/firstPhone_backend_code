@@ -156,6 +156,7 @@ public function getcustomermobileListing()
                             : json_decode($listing->image, true)) 
                         : null,
                     'status' => $listing->status,
+                    'is_sold' => $listing->is_sold,
                 ];
             });
         $data = $listings->count() === 1 ? $listings->first() : $listings;

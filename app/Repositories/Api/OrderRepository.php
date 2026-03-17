@@ -129,7 +129,8 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
 
     public function getOrderByIdAndCustomer(int $orderId, int $customerId): Order
     {
-        return Order::where('id', $orderId)
+        return Order::with(['items.vendor'])
+            ->where('id', $orderId)
             // ->where('customer_id', $customerId)
             ->firstOrFail();
     }
@@ -230,6 +231,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
         // $total = $subtotal + $shippingCharges;
         $total = $subtotal + ($order->shipping_charges ?? 0);
         // $total = $subtotal;
+        $vendor = optional($order->items->first()?->vendor);
         return [
             'id'       => $order->id,
             'order_date'     => Carbon::parse($order->created_at)->format('F d, Y'),
@@ -244,19 +246,27 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'street_address' => $order->shippingAddress->street_address ?? null,
             ],
             'products'       => $order->items->map(fn($item) => [
-                'product_id'  => $item->product_id,
+                'product_id'  => $item->id,
                 'vendor_name' => $item->vendor->name ?? null,
-                'product_name' => ($item->product->brand->name ?? '') . ' ' . ($item->product->model->name ?? $item->product_name),
+                'product_name' => trim(($item->brand_name ?? '') . ' ' . ($item->model_name ?? '')),
                 'price'        => $item->price,
                 'quantity'     => $item->quantity,
-                'image'        => $item->product->image
+                'image'        => $item->image
                     ? asset(
-                        is_array(json_decode($item->product->image, true))
-                            ? ltrim(json_decode($item->product->image, true)[0], '/')   // ✅ First from JSON array
-                            : ltrim(explode(',', $item->product->image)[0], '/')       // ✅ First from comma string
+                        is_array(json_decode($item->image, true))
+                            ? ltrim(json_decode($item->image, true)[0], '/')   // ✅ First from JSON array
+                            : ltrim(explode(',', $item->image)[0], '/')       // ✅ First from comma string
                     )
                     : null,
             ]),
+            'vendor' => [
+            'vendor_id'      => $vendor->id,
+            'shop_name'      => $vendor->name,
+            'user_type'      => 'vendor',
+            'vendor_address' => $vendor->location,
+            'vendor_image'   => $vendor->image,
+            'vendor_phone'   => $vendor->phone,
+        ],
             'order_status'   => $order->order_status,
             'payment_status' => $order->payment_status,
             'payment_method' => $order->delivery_method,
@@ -458,6 +468,10 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 'product_id' => $mobile->id,
                 'brand_id'      => $mobile->brand_id ?? 'Unknown',
                 'model_id'      => $mobile->model_id ?? 'Unknown',
+                'brand_name'   => $mobile->brand->name ?? null,
+                'model_name'   => $mobile->model->name ?? null,
+                'storage'      => $mobile->storage ?? null,
+                'price'        => $item->price,
                 'imei_one'      => $device['imei_one'] ?? null,
                 'imei_two'      => $device['imei_two'] ?? null,
                 'payment_id'   => $paymentId,
@@ -548,14 +562,14 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             $orderItem = $order->items->firstWhere('id', $receipt->order_item_id);
             $quantity = $orderItem?->quantity ?? 1;
             $response['products'][] = [
-                'brand'    => $receipt->brand?->name ?? 'N/A',
-                'model'    => $receipt->model?->name ?? 'N/A',
-                'storage'  => $orderItem?->product?->storage ?? 'N/A',
+                'brand'    => $receipt->brand_name ?? 'N/A',
+                'model'    => $receipt->model_name ?? 'N/A',
+                'storage'  => $orderItem->storage ?? 'N/A',
                 'imei_one' => $receipt->imei_one,
                 'imei_two' => $receipt->imei_two,
                 'quantity' => $quantity,
-                'price'    => $orderItem->price ?? 0,
-                'total'    => $quantity * $orderItem->price,
+                'price'    => $receipt->price ?? 0,
+                'total'    => $quantity * ($receipt->price ?? 0),
             ];
         }
         $shippingPrice = $order->delivery_method === 'go_shop' ? 0 : 200;

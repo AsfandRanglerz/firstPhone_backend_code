@@ -192,6 +192,139 @@ class HomeRepository implements HomeRepositoryInterface
 
    public function getDeviceDetails($id)
     {
+        $orderItem = OrderItem::findOrFail($id);
+
+        // Try getting product from vendor_mobiles
+        $listing = VendorMobile::with(['brand','model'])
+        ->find($orderItem->product_id);
+
+
+         // If product deleted → fallback to order_items
+    if (!$listing) {
+
+        $images = $orderItem->image
+            ? json_decode($orderItem->image, true)
+            : null;
+
+        $videos = $orderItem->video
+            ? json_decode($orderItem->video, true)
+            : null;
+
+        return [
+            'status' => 'success',
+
+            'specifications' => [[
+                'product_id' => $orderItem->product_id,
+                'brand'      => $orderItem->brand_name,
+                'model'      => $orderItem->model_name,
+                'storage'    => $orderItem->storage,
+                'price'      => $orderItem->price,
+                'condition'  => $orderItem->condition,
+                'color'      => $orderItem->color,
+                'ram'        => $orderItem->ram,
+                'processor'  => $orderItem->processor,
+                'display'    => $orderItem->display,
+                'charging'   => $orderItem->charging,
+                'refresh_rate' => $orderItem->refresh_rate,
+                'main_camera'  => $orderItem->main_camera,
+                'ultra_camera' => $orderItem->ultra_camera,
+                'telephoto_camera' => $orderItem->telephoto_camera,
+                'front_camera' => $orderItem->front_camera,
+                'build'        => $orderItem->build,
+                'wireless'     => $orderItem->wireless,
+                'pta_approved' => $orderItem->pta_approved == 0 ? 'Approved' : 'Not Approved',
+                'stock'        => $orderItem->stock,
+            ]],
+
+            'other_features' => [[
+                'ai_features'    => $orderItem->ai_features,
+                'battery_health' => $orderItem->battery_health,
+                'os_version'     => $orderItem->os_version,
+            ]],
+
+            'warranty_details' => [[
+                'warranty_start' => $orderItem->warranty_start,
+                'warranty_end'   => $orderItem->warranty_end,
+            ]],
+
+            'description' => [$orderItem->about],
+
+            'images' => $images
+                ? array_map(fn($p) => asset($p), $images)
+                : null,
+
+            'videos' => $videos
+                ? array_map(fn($p) => asset($p), $videos)
+                : null,
+        ];
+    }
+
+       // NORMAL PRODUCT FLOW
+    $images = empty($listing->image)
+        ? null
+        : (is_array(json_decode($listing->image, true))
+            ? json_decode($listing->image, true)
+            : [$listing->image]);
+
+    $videos = empty($listing->video)
+        ? null
+        : (is_array(json_decode($listing->video, true))
+            ? json_decode($listing->video, true)
+            : [$listing->video]);
+
+    return [
+        'status' => 'success',
+
+        'specifications' => [[
+            'product_id' => $listing->id,
+            'brand_id'   => $listing->brand->id ?? null,
+            'brand'      => $listing->brand->name ?? null,
+            'model_id'   => $listing->model->id ?? null,
+            'model'      => $listing->model->name ?? null,
+            'storage'    => $listing->storage,
+            'price'      => $listing->price,
+            'condition'  => $listing->condition,
+            'color'      => $listing->color,
+            'ram'        => $listing->ram,
+            'processor'  => $listing->processor,
+            'display'    => $listing->display,
+            'charging'   => $listing->charging,
+            'refresh_rate' => $listing->refresh_rate,
+            'main_camera'  => $listing->main_camera,
+            'ultra_camera' => $listing->ultra_camera,
+            'telephoto_camera' => $listing->telephoto_camera,
+            'front_camera' => $listing->front_camera,
+            'build'        => $listing->build,
+            'wireless'     => $listing->wireless,
+            'pta_approved' => $listing->pta_approved == 0 ? 'Approved' : 'Not Approved',
+            'stock'        => $listing->stock,
+        ]],
+
+        'other_features' => [[
+            'ai_features'    => $listing->ai_features,
+            'battery_health' => $listing->battery_health,
+            'os_version'     => $listing->os_version,
+        ]],
+
+        'warranty_details' => [[
+            'warranty_start' => $listing->warranty_start,
+            'warranty_end'   => $listing->warranty_end,
+        ]],
+
+        'description' => [$listing->about],
+
+        'images' => $images
+            ? array_map(fn($p) => asset($p), $images)
+            : null,
+
+        'videos' => $videos
+            ? array_map(fn($p) => asset($p), $videos)
+            : null,
+    ];
+}
+
+public function getvendorDeviceDetails($id)
+    {
         $listing = VendorMobile::with(['brand', 'model'])
             ->where('id', $id)
             ->firstOrFail();
