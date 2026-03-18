@@ -139,10 +139,11 @@ public function subscribe(Request $request)
     {
         $vendor = auth()->user();
 
-        $subscription = VendorSubscription::with(['plan:id,name,product_limit'])->where('vendor_id', $vendor->id)
-            ->where('is_active', true)
-            ->where('end_date', '>=', now())
-            ->latest()
+        $subscription = VendorSubscription::with(['plan:id,name,product_limit'])
+            ->where('vendor_id', $vendor->id)
+            // ->whereIn('is_active', [true, false])
+            // ->where('end_date', '>=', now())
+            ->latest('id') // ✅ explicitly by id
             ->first();
 
         if (!$subscription) {
