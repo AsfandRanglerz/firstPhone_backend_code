@@ -47,10 +47,10 @@
         <i data-feather="layout"></i>
         <span>Users</span>
 
-        <div class="badge {{ request()->is('admin/vendor*') ? 'bg-white text-dark' : 'bg-primary text-white' }}"
+        <div class="badge bg-primary text-white"
             style="display: inline-flex; justify-content: center; align-items: center; 
-            min-width: 22px; height: 22px; border-radius: 50%; 
-            font-size: 12px; margin-left: 5px; margin-right:20px; padding: 3px;">
+                    min-width: 22px; height: 22px; border-radius: 50%; 
+                    font-size: 12px; margin-left: 5px; margin-right:20px; padding: 3px;">
             {{ $pendingVendorCount }}
         </div>
     </a>
