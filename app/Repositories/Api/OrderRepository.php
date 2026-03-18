@@ -108,7 +108,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
                 'customer_id'    => $order->customer_id,
                 'shop_name'      => $vendorName,
                 'total_price'    => $vendorItems->sum(fn ($item) => $item->price * $item->quantity) + $shipping,
-                'total_products' => $vendorItems->sum('quantity'),
+                'total_products' => $vendorItems->pluck('product_id')->unique()->count(),
                 'date'           => Carbon::parse($order->created_at)->format('F d, Y'),
                 'time' => $order->created_at->format('h:i A'),
                 'order_status'   => $order->order_status,
@@ -129,8 +129,7 @@ public function getOrdersByVendorAndStatus(int $vendorId, string $status): Colle
 
     public function getOrderByIdAndCustomer(int $orderId, int $customerId): Order
     {
-        return Order::with(['items.vendor'])
-            ->where('id', $orderId)
+        return Order::where('id', $orderId)
             // ->where('customer_id', $customerId)
             ->firstOrFail();
     }
@@ -399,8 +398,8 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                 $images = json_decode($item->product->image ?? '[]', true);
 
                 return [
-                    'vendor_name' => $item->vendor->name ?? null, 
-                    'order_item_id' => $item->id,      
+                    'vendor_name' => $item->vendor->name ?? null,
+                    'order_item_id' => $item->id,       
                     'product_id' => $item->product_id,
                     'title'      => trim(
                         ($item->product->brand->name ?? '') . ' ' .
@@ -565,7 +564,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
             $response['products'][] = [
                 'brand'    => $receipt->brand_name ?? 'N/A',
                 'model'    => $receipt->model_name ?? 'N/A',
-                'storage'  => $orderItem->storage ?? 'N/A',
+                'storage'  => $orderItem?->storage ?? 'N/A',
                 'imei_one' => $receipt->imei_one,
                 'imei_two' => $receipt->imei_two,
                 'quantity' => $quantity,

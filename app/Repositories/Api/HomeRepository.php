@@ -4,6 +4,7 @@ namespace App\Repositories\Api;
 
 use App\Models\OrderItem;
 use App\Models\VendorMobile;
+use App\Models\CustomerLastSearch;
 use Illuminate\Http\Request;
 use App\Models\MobileListing;
 use Illuminate\Support\Facades\Auth;
@@ -88,10 +89,15 @@ class HomeRepository implements HomeRepositoryInterface
     // }
 
      public function getNearbyListings($request)
-    {
+    {         
+        // return CustomerLastSearch::where('customer_id',$request->query('customer_id'))->get();  
         $customerLat = $request->query('latitude');
-        $customerLng = $request->query('longitude');
+        $customerLng = $request->query('longitude'); 
+        if ($request->query('delete_filter') == true) {
+        // return CustomerLastSearch::where('customer_id',$request->query('customer_id'))->get();  
 
+            CustomerLastSearch::where('customer_id',$request->query('customer_id'))->delete();
+        }
         if (!$customerLat || !$customerLng) {
             throw new \Exception('Latitude and Longitude are required to fetch nearby listings');
         }
@@ -101,6 +107,8 @@ class HomeRepository implements HomeRepositoryInterface
 
         $query = VendorMobile::with(['brand', 'model', 'vendor'])
             ->join('vendors', 'vendor_mobiles.vendor_id', '=', 'vendors.id')
+            ->where('vendor_mobiles.stock', '>', 0)
+            ->where('vendor_mobiles.status', '==', 0)
             ->select(
                 'vendor_mobiles.id',
                 'vendor_mobiles.vendor_id',
@@ -168,7 +176,7 @@ class HomeRepository implements HomeRepositoryInterface
 
         $query = OrderItem::with(['product.brand', 'product.model', 'product.vendor', 'order'])
             ->whereHas('order', fn($q) => $q->where('order_status', 'delivered'))
-            ->whereHas('product', fn($q) => $q->where('stock', '>', 0));
+            ->whereHas('product', fn($q) => $q->where('stock', '>', 0)->where('status', '==', 0));
 
         // Search filter
         if ($search) {
@@ -240,7 +248,7 @@ class HomeRepository implements HomeRepositoryInterface
                     'brand'         => $product->brand?->name,
                     'model'         => $product->model?->name,
                     'price'         => $product->price,
-                    'image'         => isset($images[0]) ? asset($images[0]) : null,
+                    'image'         => isset($images[0]) ? $images[0] : null,
                     'total_sales'   => $items->count(),
                     'distance'      => $distance ? $distance . ' km' : null,
                     'repair_service'=> $product->vendor?->repair_service, 
@@ -268,11 +276,7 @@ class HomeRepository implements HomeRepositoryInterface
          // If product deleted → fallback to order_items
     if (!$listing) {
 
-<<<<<<< HEAD
             $images = $orderItem->image
-=======
-        $images = $orderItem->image
->>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
             ? json_decode($orderItem->image, true)
             : null;
 
@@ -393,11 +397,7 @@ class HomeRepository implements HomeRepositoryInterface
     ];
 }
 
-<<<<<<< HEAD
  public function getvendorDeviceDetails($id)
-=======
-public function getvendorDeviceDetails($id)
->>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
     {
         $listing = VendorMobile::with(['brand', 'model'])
             ->where('id', $id)

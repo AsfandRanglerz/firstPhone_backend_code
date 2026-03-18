@@ -142,7 +142,7 @@ public function getcustomermobileListing()
 
         $listings = MobileListing::with(['customer'])
             ->where('customer_id', $customer)
-            ->get() 
+            ->get()
             ->map(function ($listing) {
                 return [
                     'id' => $listing->id,
@@ -189,6 +189,10 @@ public function getcustomernearbyListings($vendorLat, $vendorLng, $radius = 50)
             $videoUrls = array_map(fn ($vid) => asset($vid), $videos);
 
             return [
+                'customer_id' => $listing->customer->id,
+                'customer_name' => $listing->customer->name,
+                'customer_phone' => $listing->customer->phone,
+                'customer_image' => $listing->customer->image,
                 'id' => $listing->id,
                 'brand' => $listing->brand,
                 'model' => $listing->model,

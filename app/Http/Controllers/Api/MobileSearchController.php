@@ -34,6 +34,7 @@ class MobileSearchController extends Controller
             // Search vendor_mobiles with model, brand, vendor
             $mobiles = \App\Models\VendorMobile::with(['model', 'brand', 'vendor'])
                 ->where('stock', '>', 0)
+                ->where('status', '==', 0)
                 ->where(function ($q) use ($words) {
                     foreach ($words as $word) {
                         $q->where(function ($q2) use ($word) {
