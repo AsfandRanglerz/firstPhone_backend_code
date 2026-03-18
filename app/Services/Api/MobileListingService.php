@@ -142,7 +142,7 @@ public function getcustomermobileListing()
 
         $listings = MobileListing::with(['customer'])
             ->where('customer_id', $customer)
-            ->get()
+            ->get() 
             ->map(function ($listing) {
                 return [
                     'id' => $listing->id,

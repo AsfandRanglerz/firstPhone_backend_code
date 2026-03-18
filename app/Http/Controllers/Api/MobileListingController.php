@@ -34,6 +34,7 @@ public function getmobileListing()
         ->first();
         $listings = VendorMobile::with(['brand', 'vendor'])
             ->where('vendor_id', $vendor)
+            ->where('stock', '>', 0)
             ->get()
             ->map(function ($listing) use ($activeSubscription) {
 
@@ -237,8 +238,6 @@ public function customerdeleteMobileListing(Request $request)
         'message' => 'Mobile Listing deleted successfully',
     ], 200);
 }
-
-
 
 
 }
