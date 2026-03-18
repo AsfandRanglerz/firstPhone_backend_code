@@ -20,7 +20,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = $this->userService->getAllUsers();
+        // $users = $this->userService->getAllUsers();
         $sideMenuPermissions = collect();
 
         if (!Auth::guard('admin')->check()) {
@@ -33,8 +33,102 @@ class UserController extends Controller
             });
         }
 
-        return view('users.index', compact('users', 'sideMenuPermissions'));
+        return view('users.index', compact('sideMenuPermissions'));
     }
+
+    public function getUsersData(Request $request)
+{
+    $sideMenuPermissions = collect();
+
+if (!Auth::guard('admin')->check()) {
+    $user = Auth::guard('subadmin')->user()->load('roles');
+
+    $permissions = UserRolePermission::with(['permission', 'sideMenue'])
+        ->where('role_id', $user->role_id)
+        ->get();
+
+    $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
+        ->map(fn($items) => $items->pluck('permission.name'));
+}
+    $query = User::select('id','name','email','phone','image','toggle')
+        ->orderBy('id','desc');
+
+    return datatables()->of($query)
+        ->addIndexColumn()
+
+        ->editColumn('email', function ($user) {
+            return '<a href="mailto:'.$user->email.'">'.$user->email.'</a>';
+        })
+
+        ->editColumn('phone', function ($user) {
+            return '<a href="tel:'.$user->phone.'">'.$user->phone.'</a>';
+        })
+
+        ->editColumn('image', function ($user) {
+            return $user->image
+                ? '<img src="'.asset($user->image).'" width="50">'
+                : 'No Image';
+        })
+
+        ->addColumn('toggle', function ($user) {
+            $checked = $user->toggle ? 'checked' : '';
+            $statusText = $user->toggle ? 'Activated' : 'Deactivated';
+
+            return '
+            <label class="custom-switch">
+                <input type="checkbox" class="custom-switch-input toggle-status"
+                    data-id="'.$user->id.'" '.$checked.'>
+                <span class="custom-switch-indicator"></span>
+                <span class="custom-switch-description">'.$statusText.'</span>
+            </label>';
+        })
+
+        ->addColumn('actions', function ($user) use ($sideMenuPermissions) {
+
+    $buttons = '<div class="d-flex gap-1">';
+
+    // ✅ EDIT BUTTON
+    if (
+        Auth::guard('admin')->check() ||
+        ($sideMenuPermissions->has('Customers') &&
+        $sideMenuPermissions['Customers']->contains('edit'))
+    ) {
+        $buttons .= '
+        <a href="'.route('user.edit',$user->id).'" class="btn btn-primary">
+            <i class="fa fa-edit"></i>
+        </a>';
+    }
+
+    // ✅ DELETE BUTTON
+    if (
+        Auth::guard('admin')->check() ||
+        ($sideMenuPermissions->has('Customers') &&
+        $sideMenuPermissions['Customers']->contains('delete'))
+    ) {
+        $buttons .= '
+        <form id="delete-form-'.$user->id.'" 
+            action="'.route('user.delete',$user->id).'" 
+            method="POST" style="display:inline;">
+            '.csrf_field().'
+            '.method_field('DELETE').'
+        </form>
+
+        <button class="show_confirm btn" 
+            style="background-color: #009245;"
+            data-form="delete-form-'.$user->id.'" 
+            type="button">
+            <i class="fa fa-trash"></i>
+        </button>';
+    }
+
+    $buttons .= '</div>';
+
+    return $buttons;
+})
+
+        ->rawColumns(['email','phone','image','toggle','actions'])
+        ->make(true);
+}
 
     public function toggleStatus(Request $request)
     {

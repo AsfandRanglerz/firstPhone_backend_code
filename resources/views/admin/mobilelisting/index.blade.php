@@ -97,6 +97,8 @@
                                                 </td>
                                                 <td>{{ $mobile->about }}</td>
                                                 <td>
+                                                     @if (Auth::guard('admin')->check() ||
+                                                                    ($sideMenuPermissions->has('Customer Mobiles') && $sideMenuPermissions['Customer Mobiles']->contains('status')))
                                                     @php
                                                         $status = (int) $mobile->status;
                                                         $statusText = match ($status) {
@@ -157,6 +159,7 @@
 
                                                             </div>
                                                         </div>
+                                                    @endif
                                                     @endif
                                                 </td>
                                                 <td>

@@ -68,6 +68,8 @@
                                                     @endif
                                                 </td>
                                                 <td>
+                                                     @if (Auth::guard('admin')->check() ||
+                                                                ($sideMenuPermissions->has('Cancel Orders') && $sideMenuPermissions['Cancel Orders']->contains('status')))
                                                     @php
                                                         $statusColors = [
                                                             'requested' => 'btn-warning',
@@ -128,9 +130,12 @@
                                                         </div>
 
                                                     @endif
+                                                    @endif
                                                 </td>
 
                                                 <td>
+                                                     @if (Auth::guard('admin')->check() ||
+                                                                ($sideMenuPermissions->has('Cancel Orders') && $sideMenuPermissions['Cancel Orders']->contains('delete')))
                                                     <form id="delete-form-{{ $cancelOrder->id }}"
                                                         action="{{ route('cancel-orders.destroy', $cancelOrder->id) }}"
                                                         method="POST">
@@ -142,6 +147,7 @@
                                                         data-form="delete-form-{{ $cancelOrder->id }}" type="button">
                                                         <span><i class="fa fa-trash"></i></span>
                                                     </button>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach

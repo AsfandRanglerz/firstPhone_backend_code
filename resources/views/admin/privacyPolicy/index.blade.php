@@ -43,7 +43,7 @@
                                                 <div class="d-flex gap-4">
 
                                                     @if (Auth::guard('admin')->check() ||
-                                                            ($sideMenuPermissions->has('Privacy & Policy') && $sideMenuPermissions['Privacy & Policy']->contains('edit')))
+                                                            ($sideMenuPermissions->has('Privacy Policy') && $sideMenuPermissions['Privacy Policy']->contains('edit')))
                                                         <a href="{{ url('/admin/privacy-policy-edit') }}"
                                                             class="btn btn-primary"><span class="fa fa-edit"></a>
                                                     @endif

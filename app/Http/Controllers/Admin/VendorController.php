@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use App\Services\VendorService;
-use App\Models\UserRolePermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateVendorRequest;
 use App\Http\Requests\VendorRequest;
+use App\Models\UserRolePermission;
+use App\Models\Vendor;
 use App\Models\VendorImage;
+use App\Services\VendorService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -23,7 +24,7 @@ class VendorController extends Controller
 
     public function index()
     {
-        $users = $this->vendorService->getAllUsers();
+        // $users = $this->vendorService->getAllUsers();
         
         $sideMenuPermissions = collect();
 
@@ -37,8 +38,180 @@ class VendorController extends Controller
             });
         }
 
-        return view('admin.vendor.index', compact('users', 'sideMenuPermissions'));
+        return view('admin.vendor.index', compact( 'sideMenuPermissions'));
     }
+
+    public function getVendorsData(Request $request)
+{
+    $sideMenuPermissions = collect();
+
+    if (!Auth::guard('admin')->check()) {
+        $user = Auth::guard('subadmin')->user()->load('roles');
+
+        $permissions = UserRolePermission::with(['permission', 'sideMenue'])
+            ->where('role_id', $user->role_id)
+            ->get();
+
+        $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
+            ->map(fn($items) => $items->pluck('permission.name'));
+    }
+
+    $query = Vendor::with(['subscription.plan', 'images'])
+        ->latest();
+
+    return datatables()->of($query)
+        ->addIndexColumn()
+
+        // ✅ Date
+        ->editColumn('created_at', function ($user) {
+            return $user->created_at
+                ? $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A')
+                : '';
+        })
+
+        // ✅ Package
+        ->addColumn('package', function ($user) {
+            return $user->subscription && $user->subscription->plan
+                ? $user->subscription->plan->name
+                : '<span class="text-muted">No Package</span>';
+        })
+
+        // ✅ Email
+        ->editColumn('email', function ($user) {
+            return '<a href="mailto:'.$user->email.'">'.$user->email.'</a>';
+        })
+
+        // ✅ Phone
+        ->editColumn('phone', function ($user) {
+            return '<a href="tel:'.$user->phone.'">'.$user->phone.'</a>';
+        })
+
+        // ✅ CNIC Front
+        ->addColumn('cnic_front', function ($user) {
+            return $user->cnic_front
+                ? '<button class="btn btn-sm btn-info view-cnic"
+                        data-front="'.asset($user->cnic_front).'"
+                        data-back="'.asset($user->cnic_back).'">
+                        <i class="fa fa-eye"></i>
+                   </button>'
+                : '<span class="text-muted">No CNIC Front</span>';
+        })
+
+        // ✅ CNIC Back
+        ->addColumn('cnic_back', function ($user) {
+            return $user->cnic_back
+                ? '<button class="btn btn-sm btn-info view-cnic-back"
+                        data-back="'.asset($user->cnic_back).'">
+                        <i class="fa fa-eye"></i>
+                   </button>'
+                : '<span class="text-muted">No CNIC Back</span>';
+        })
+
+        // ✅ Shop Images
+        ->addColumn('shop_images', function ($user) {
+            if ($user->images && $user->images->count()) {
+                return '<button class="btn btn-sm btn-info view-shop-images"
+                    data-images=\''.json_encode($user->images->pluck('image')).'\'>
+                    <i class="fa fa-eye"></i>
+                </button>';
+            }
+            return '<span class="text-muted">No Shop Images</span>';
+        })
+
+        // ✅ Profile Image
+        ->editColumn('image', function ($user) {
+            return $user->image
+                ? '<img src="'.asset($user->image).'" width="50">'
+                : '<span class="text-muted">No Image</span>';
+        })
+
+        // ✅ Status Dropdown
+        ->addColumn('status', function ($user) use ($sideMenuPermissions) {
+
+            $canStatus = Auth::guard('admin')->check() ||
+                $sideMenuPermissions->flatten()->contains('status');
+
+            if (!$canStatus) {
+                return ucfirst($user->status);
+            }
+
+            $statusColors = [
+                'pending' => 'btn-warning',
+                'activated' => 'btn-primary',
+                'deactivated' => 'btn-danger',
+            ];
+
+            $statusOptions = [
+                'pending' => ['activated','deactivated'],
+                'activated' => ['deactivated'],
+                'deactivated' => ['activated']
+            ];
+
+            $html = '<div class="dropdown">
+                <button class="btn btn-sm dropdown-toggle '.$statusColors[$user->status].'"
+                    data-toggle="dropdown">'.ucfirst($user->status).'</button>
+                <div class="dropdown-menu">';
+
+            foreach ($statusOptions[$user->status] ?? [] as $status) {
+                $html .= '<button class="dropdown-item change-vendor-status"
+                    data-user-id="'.$user->id.'"
+                    data-new-status="'.$status.'">'.ucfirst($status).'</button>';
+            }
+
+            $html .= '</div></div>';
+
+            return $html;
+        })
+
+        // ✅ Actions (Edit + Delete)
+        ->addColumn('actions', function ($user) use ($sideMenuPermissions) {
+
+            $buttons = '<div class="d-flex gap-1">';
+
+        // ✅ EDIT BUTTON
+        if (
+            Auth::guard('admin')->check() ||
+            ($sideMenuPermissions->has('Vendors') &&
+            $sideMenuPermissions['Vendors']->contains('edit'))
+        ) {
+            $buttons .= '
+            <a href="'.route('vendor.edit',$user->id).'" class="btn btn-primary">
+                <i class="fa fa-edit"></i>
+            </a>';
+        }
+
+            if (
+        Auth::guard('admin')->check() ||
+        ($sideMenuPermissions->has('Vendors') &&
+        $sideMenuPermissions['Vendors']->contains('delete'))
+    ) {
+        $buttons .= '
+        <form id="delete-form-'.$user->id.'" 
+            action="'.route('vendor.delete',$user->id).'" 
+            method="POST" style="display:inline;">
+            '.csrf_field().'
+            '.method_field('DELETE').'
+        </form>
+
+        <button class="show_confirm btn" 
+            style="background-color: #009245;"
+            data-form="delete-form-'.$user->id.'" 
+            type="button">
+            <i class="fa fa-trash"></i>
+        </button>';
+    }
+
+    $buttons .= '</div>';
+
+    return $buttons;
+        })
+
+        ->rawColumns([
+            'email','phone','cnic_front','cnic_back',
+            'shop_images','image','status','actions','package'
+        ])
+        ->make(true);
+}
 
      public function vendorpendingCounter()
     {

@@ -233,7 +233,9 @@
                         }
 
                         toastr.success('Brand Created Successfully');
-                        $('#brandModal').modal('hide');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
                     },
                     error: function(xhr) {
                         $('.error-message').text('');

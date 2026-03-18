@@ -99,7 +99,7 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::post('/delete-all-users', 'deleteAll');
 
         //User ajax api
-        Route::get('/users-data', [UserController::class, 'getUsersData'])->name('users.data');
+        Route::get('/users-data',  'getUsersData')->name('users.data');
     });
 
 
@@ -113,6 +113,8 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::post('/vendor-update/{id}', 'update')->name('vendor.update')->middleware('check.permission:Vendors,edit');
         Route::delete('/vendor-destroy/{id}', 'delete')->name('vendor.delete')->middleware('check.permission:Vendors,delete');
         Route::post('/vendor/update-status', 'updateStatus')->name('vendor.update-status');
+        //Vendor ajax api
+         Route::get('/vendors-data',  'getVendorsData')->name('vendors.data');
     });
 
     // ############ Brands #################
@@ -167,9 +169,9 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
     // ############ Mobile Requests #################
     Route::controller(MobileRequestController::class)->group(function () {
         Route::get('/mobilerequest/count', 'mobileRequestCounter')->name('mobilerequest.counter');
-        Route::get('/mobilerequest', 'index')->name('mobilerequest.index')->middleware('check.permission:MobileRequest,view');
+        Route::get('/mobilerequest', 'index')->name('mobilerequest.index')->middleware('check.permission:Mobile Requests,view');
         Route::get('/mobilerequest-show/{id}', 'show')->name('mobilerequest.show');
-        Route::delete('/mobilerequest-destroy/{id}', 'delete')->name('mobilerequest.delete')->middleware('check.permission:MobileRequest,delete');
+        Route::delete('/mobilerequest-destroy/{id}', 'delete')->name('mobilerequest.delete')->middleware('check.permission:Mobile Requests,delete');
         Route::patch('/mark-as-read/{id}',  'markAsRead')->name('mobilerequest.markAsRead');
     });
 
@@ -231,13 +233,13 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
 
     // ############ Faq Routes #################
     Route::controller(FaqController::class)->group(function () {
-        Route::get('faq', 'Faq')->middleware('check.permission:Faqs,view');
-        Route::get('faq-edit/{id}', 'FaqsEdit')->name('faq.edit')->middleware('check.permission:Faqs,edit');
-        Route::post('faq-update/{id}', 'FaqsUpdate')->middleware('check.permission:Faqs,edit');
+         Route::get('faq', 'Faq')->middleware("check.permission:FAQ's,view");
+        Route::get('faq-edit/{id}', 'FaqsEdit')->name('faq.edit')->middleware("check.permission:FAQ's,edit");
+        Route::post('faq-update/{id}', 'FaqsUpdate')->middleware("check.permission:FAQ's,edit");
         Route::get('faq-view', 'FaqView')->middleware('check.permission:Faqs,view');
-        Route::get('faq-create', 'Faqscreateview')->middleware('check.permission:Faqs,create');
+        Route::get('faq-create', 'Faqscreateview')->middleware("check.permission:FAQ's,create");
         Route::post('faq-store', 'Faqsstore')->middleware('check.permission:Faqs,create');
-        Route::delete('faq-destroy/{id}', 'faqdelete')->name('faq.destroy');
+        Route::delete('faq-destroy/{id}', 'faqdelete')->name('faq.destroy')->middleware("check.permission:FAQ's,delete");
         Route::post('/faqs/reorder', 'reorder')->name('faq.reorder');
     });
 

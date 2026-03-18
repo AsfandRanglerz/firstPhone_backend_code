@@ -98,7 +98,7 @@
                                                 <td>
                                                     <div class="d-flex gap-1">
                                                         @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('MobileRequest') && $sideMenuPermissions['MobileRequest']->contains('delete')))
+                                                                ($sideMenuPermissions->has('Mobile Requests') && $sideMenuPermissions['Mobile Requests']->contains('delete')))
                                                             <form id="delete-form-{{ $mobilerequest->id }}"
                                                                 action="{{ route('mobilerequest.delete', $mobilerequest->id) }}"
                                                                 method="POST">
@@ -112,6 +112,9 @@
                                                                     <span><i class="fa fa-trash"></i></span>
                                                                 </button>
                                                             </form>
+                                                            @endif
+                                                            @if (Auth::guard('admin')->check() ||
+                                                                ($sideMenuPermissions->has('Mobile Requests') && $sideMenuPermissions['Mobile Requests']->contains('mark as read')))
                                                             @if ($mobilerequest->status == 2)
                                                                 <form
                                                                     action="{{ route('mobilerequest.markAsRead', $mobilerequest->id) }}"

@@ -18,10 +18,7 @@
                                     <a class="btn btn-primary mb-3 text-white"
                                         href="{{ url('/admin/vendor-create') }}">Create</a>
                                 @endif
-                                <div>
-                                    <button class="btn btn-info" id="selectAllBtn">Select All</button>
-                                    <button class="btn btn-danger" id="deleteAllBtn">Delete All</button>
-                                </div>
+                                
                                 </div>
 
                                 {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('users') && $sideMenuPermissions['users']->contains('view')))
@@ -32,7 +29,6 @@
                                 <table class="table responsive" id="table_id_events">
                                     <thead>
                                         <tr>
-                                            <th><input type="checkbox" id="selectAllCheckbox"></th>
                                             <th>Sr.</th>
                                             <th>Date & Time</th>
                                             <th>Name</th>
@@ -48,130 +44,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($users as $user)
-                                            <tr>
-                                                <td>
-                                                    <input type="checkbox" class="user-checkbox" value="{{ $user->id }}">
-                                                </td>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</td>
-                                                <td>{{ $user->name }}</td>
-                                                <td>
-                                                    @if($user->subscription && $user->subscription->plan)
-                                                        {{ $user->subscription->plan->name }}
-                                                    @else
-                                                        <span class="text-muted">No Package</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
-                                                </td>
-                                                <td><a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
-                                                <td>
-                                                    @if ($user->cnic_front)
-                                                        <button class="btn btn-sm btn-info view-cnic"
-                                                            data-front="{{ asset($user->cnic_front) }}"
-                                                            data-back="{{ asset($user->cnic_back) }}" title="View CNIC">
-                                                            <i class="fa fa-eye"></i>
-                                                        </button>
-                                                    @else
-                                                        <span class="text-muted">No CNIC Front</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if ($user->cnic_back)
-                                                        <button class="btn btn-sm btn-info view-cnic-back"
-                                                            data-back="{{ asset($user->cnic_back) }}" title="View CNIC">
-                                                            <i class="fa fa-eye"></i>
-                                                        </button>
-                                                    @else
-                                                        <span class="text-muted">No CNIC Back</span>
-                                                    @endif
-                                                </td>
-
-                                                <td>
-                                                    @if ($user->images && $user->images->count() > 0)
-                                                        <button class="btn btn-sm btn-info view-shop-images"
-                                                            data-images='@json($user->images->pluck('image'))' title="View CNIC">
-                                                            <i class="fa fa-eye"></i>
-                                                        </button>
-                                                    @else
-                                                        <span class="text-muted">No Shop Images</span>
-                                                    @endif
-                                                </td>
-
-                                                <td>
-                                                    @if ($user->image)
-                                                        <img src="{{ asset($user->image) }}" alt="CNIC Back Image"
-                                                            style="width: 50px; height: 50px;">
-                                                    @else
-                                                        <span class="text-muted">No Image</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @php
-                                                        $statusColors = [
-                                                            'pending' => 'btn-warning',
-                                                            'activated' => 'btn-primary',
-                                                            'deactivated' => 'btn-danger',
-                                                        ];
-                                                        $statusOptions = [
-                                                            'pending' => ['activated','deactivated'],
-                                                            'activated' => ['deactivated'],
-                                                            'deactivated' => ['activated']
-                                                        ];
-                                                    @endphp
-
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm dropdown-toggle {{ $statusColors[$user->status] ?? 'btn-light' }}"
-                                                            type="button"
-                                                            data-toggle="dropdown">
-                                                            {{ ucfirst($user->status) }}
-                                                        </button>
-
-                                                        <div class="dropdown-menu">
-                                                            @foreach($statusOptions[$user->status] ?? [] as $status)
-                                                                <button type="button"
-                                                                    class="dropdown-item change-vendor-status"
-                                                                    data-user-id="{{ $user->id }}"
-                                                                    data-new-status="{{ $status }}">
-                                                                    {{ ucfirst($status) }}
-                                                                </button>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                <td>
-                                                    <div class="d-flex gap-0">
-                                                        @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('edit')))
-                                                            <a href="{{ route('vendor.edit', $user->id) }}"
-                                                                class="btn btn-primary me-2"
-                                                                style="float: left; margin-left: 10px;">
-                                                                <i class="fa fa-edit"></i>
-                                                            </a>
-                                                        @endif
-
-                                                        @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Vendors') && $sideMenuPermissions['Vendors']->contains('delete')))
-                                                            <form id="delete-form-{{ $user->id }}"
-                                                                action="{{ route('vendor.delete', $user->id) }}"
-                                                                method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                            </form>
-
-                                                            <button class="show_confirm btn d-flex gap-4"
-                                                                style="background-color: #009245;"
-                                                                data-form="delete-form-{{ $user->id }}" type="button">
-                                                                <span><i class="fa fa-trash"></i></span>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                                        
                                     </tbody>
                                 </table>
                             </div> <!-- /.card-body -->
@@ -264,14 +137,34 @@
 
         // ===== Initialize DataTable with Responsiveness =====
         const table = $('#table_id_events').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('vendors.data') }}",
+
             responsive: true,
             autoWidth: false,
             pageLength: 10,
             destroy: true,
+
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search vendors..."
-            }
+            },
+
+            columns: [
+                { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false },
+                { data: 'created_at' },
+                { data: 'name' },
+                { data: 'package', orderable: false, searchable: false },
+                { data: 'email' },
+                { data: 'phone' },
+                { data: 'cnic_front', orderable: false, searchable: false },
+                { data: 'cnic_back', orderable: false, searchable: false },
+                { data: 'shop_images', orderable: false, searchable: false },
+                { data: 'image', orderable: false, searchable: false },
+                { data: 'status', orderable: false, searchable: false },
+                { data: 'actions', orderable: false, searchable: false }
+            ]
         });
 
         // ===== SweetAlert2 Delete Confirmation =====

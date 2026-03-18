@@ -39,61 +39,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($users as $user)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $user->name }}</td>
-                                                <td>
-                                                    <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
-                                                </td>
-                                                <td>    <a href="tel:{{ $user->phone }}">{{ $user->phone }}</a></td>
-                                                <td>
-                                                    @if ($user->image)
-                                                        <img src="{{ asset($user->image) }}" loading="lazy" alt="User Image"
-                                                            style="width: 50px; height: 50px;">
-                                                    @else
-                                                        <span>No Image</span>
-                                                    @endif
-                                                <td>
-                                                    <label class="custom-switch">
-                                                        <input type="checkbox" class="custom-switch-input toggle-status"
-                                                            data-id="{{ $user->id }}"
-                                                            {{ $user->toggle ? 'checked' : '' }}>
-                                                        <span class="custom-switch-indicator"></span>
-                                                        <span class="custom-switch-description">
-                                                            {{ $user->toggle ? 'Activated' : 'Deactivated' }}
-                                                        </span>
-                                                    </label>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex gap-1">
-                                                        @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('edit')))
-                                                            <a href="{{ route('user.edit', $user->id) }}"
-                                                                class="btn btn-primary" style="margin-left: 10px;">
-                                                                <i class="fa fa-edit"></i>
-                                                            </a>
-                                                        @endif
-
-                                                        @if (Auth::guard('admin')->check() ||
-                                                                ($sideMenuPermissions->has('Customers') && $sideMenuPermissions['Customers']->contains('delete')))
-                                                            <form id="delete-form-{{ $user->id }}"
-                                                                action="{{ route('user.delete', $user->id) }}"
-                                                                method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                            </form>
-
-                                                            <button class="show_confirm btn d-flex gap-4"
-                                                                style="background-color: #009245;"
-                                                                data-form="delete-form-{{ $user->id }}" type="button">
-                                                                <span><i class="fa fa-trash"></i></span>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                                        
                                     </tbody>
                                 </table>
                             </div> <!-- /.card-body -->
@@ -148,9 +94,21 @@
         $('#table_id_events').DataTable().destroy();
     }
     $('#table_id_events').DataTable({
+     processing: true,
+    serverSide: true,
+    ajax: "{{ route('users.data') }}",
+
+    columns: [
+        { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false},
+        { data: 'name', name: 'name' },
+        { data: 'email', name: 'email' },
+        { data: 'phone', name: 'phone' },
+        { data: 'image', name: 'image', orderable: false, searchable: false },
+        { data: 'toggle', name: 'toggle', orderable: false, searchable: false },
+        { data: 'actions', name: 'actions', orderable: false, searchable: false }
+    ],
+
     pageLength: 25,
-    deferRender: true,
-    responsive: true,
 });
 
     // SweetAlert2 delete confirmation using event delegation
