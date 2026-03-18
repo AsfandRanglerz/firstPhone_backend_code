@@ -11,7 +11,7 @@ class OrderRepo implements OrderRepoInterface
 {
     public function getAllOrders()
     {
-        return Order::with(['customer', 'items.product.brand', 'items.product.model', 'items.vendor'])
+        return Order::with(['customer', 'items.product.brand', 'items.product.model', 'items.vendor', 'items'])
             ->latest()
             ->get();
     }

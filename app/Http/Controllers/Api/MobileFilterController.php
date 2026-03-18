@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\Brand;
 use App\Models\MobileModel;
 use App\Models\VendorMobile;
+use App\Models\CustomerLastSearch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\MobileListing;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
@@ -514,6 +516,16 @@ class MobileFilterController extends Controller
                 ];
             });
 
+            CustomerLastSearch::updateOrCreate(
+            [
+                'customer_id' => Auth::id()
+            ],
+            [
+                'filters' => $request->all(), // 👈 all filters
+                'data' => $formatted->toArray() // 👈 optional (API response)
+            ]
+        );
+
             return response()->json([
                 'status'=>'success',
                 'count'=>$formatted->count(),
@@ -529,6 +541,59 @@ class MobileFilterController extends Controller
 
         }
     }
+
+       public function getLastSearch()
+{
+    try {
+        $customerId = Auth::id();
+
+        if (!$customerId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        $lastSearch = CustomerLastSearch::where('customer_id', $customerId)
+                        ->latest() // get the latest search
+                        ->first();
+        $filters = $lastSearch->filters;
+
+        /*
+        |------------------------------------------
+        | Add model name
+        |------------------------------------------
+        */
+        if (!empty($filters['model_id'])) {
+
+            $model = MobileModel::find($filters['model_id']); // 👈 your Model table
+
+            if ($model) {
+                $filters['model_name'] = $model->name;
+            }
+        }
+
+        if (!empty($filters['brand_id'])) {
+
+            $brand = Brand::find($filters['brand_id']); // 👈 your Model table
+
+            if ($brand) {
+                $filters['brand_name'] = $brand->name;
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Last search fetched successfully',
+            'data' => $filters
+        ]);
+    }  catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
 
 
 public function getMinMaxPrice()

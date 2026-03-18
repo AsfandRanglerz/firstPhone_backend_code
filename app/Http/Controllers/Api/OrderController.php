@@ -151,9 +151,19 @@ class OrderController extends Controller
 
             $order = $this->orderRepository->getOrderByIdAndCustomer($id, $customerId);
 
+            $vendor = $order->items->first()?->vendor;
+
             return ResponseHelper::success([
                 'order_id' => $order->id,
                 'status'   => $order->order_status,
+                'vendor' => [
+                'id'      => optional($vendor)->id,
+                'name'    => optional($vendor)->name,
+                'address' => optional($vendor)->location,
+                'image'   => optional($vendor)->image,
+                'phone'   => optional($vendor)->phone,
+                'user_type'       => 'vendor',
+            ],
                 'shipped_date' => $order->shipped_at 
                     ? Carbon::parse($order->shipped_at)->format('F d, Y') 
                     : null,

@@ -268,7 +268,11 @@ class HomeRepository implements HomeRepositoryInterface
          // If product deleted → fallback to order_items
     if (!$listing) {
 
+<<<<<<< HEAD
             $images = $orderItem->image
+=======
+        $images = $orderItem->image
+>>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
             ? json_decode($orderItem->image, true)
             : null;
 
@@ -389,7 +393,11 @@ class HomeRepository implements HomeRepositoryInterface
     ];
 }
 
+<<<<<<< HEAD
  public function getvendorDeviceDetails($id)
+=======
+public function getvendorDeviceDetails($id)
+>>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
     {
         $listing = VendorMobile::with(['brand', 'model'])
             ->where('id', $id)

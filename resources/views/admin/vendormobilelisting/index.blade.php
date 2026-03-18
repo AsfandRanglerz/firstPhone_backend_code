@@ -250,7 +250,7 @@
                                                     @endif --}}
 
                                                             @if (Auth::guard('admin')->check() ||
-                                                                    ($sideMenuPermissions->has('VendorMobile') && $sideMenuPermissions['VendorMobile']->contains('delete')))
+                                                                    ($sideMenuPermissions->has('Vendor Mobiles') && $sideMenuPermissions['Customer Mobiles']->contains('delete')))
                                                                 <form id="delete-form-{{ $mobile->id }}"
                                                                     action="{{ route('vendormobile.delete', $mobile->id) }}"
                                                                     method="POST">

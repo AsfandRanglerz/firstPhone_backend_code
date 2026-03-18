@@ -153,6 +153,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/customermobilelisting', [CustomerMobileListingController::class, 'customermobileListing']);
     Route::get('/getcustomermobilelisting', [CustomerMobileListingController::class, 'getcustomermobileListing']);
     Route::delete('/customerdeletemobilelisting', [MobileListingController::class, 'customerdeleteMobileListing']);
+    Route::get('/mobile-listing/{id}', [MobileListingController::class, 'getMobileListingById']);
 
     //Nearby Customer Listings
     Route::get('/getnearbycustomerlistings', [MobileListingController::class, 'getNearbyCustomerListings']);
@@ -187,6 +188,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get vendor order list api
      Route::get('/vendor-orderlist/{orderId}', [OrderController::class, 'vendorOrderList']);
 
+     Route::post('/mobile-filters-data', [MobileFilterController::class, 'getData']);
+     
+     Route::get('/customer-last-search', [MobileFilterController::class, 'getLastSearch']);
 });
 
 // customer side Home Screen API
@@ -196,7 +200,7 @@ Route::get('/listings/nearby', [HomeController::class, 'getNearbyListings']);
 //filter searchers api
 Route::get('/models/{brand_id}', [MobileFilterController::class, 'getModels']);
 Route::get('/brands', [MobileFilterController::class, 'getBrands']);
-Route::post('/mobile-filters-data', [MobileFilterController::class, 'getData']);
+
 Route::get('/getminmaxprice', [MobileFilterController::class, 'getMinMaxPrice']);
 
 
@@ -206,6 +210,8 @@ Route::get('/mobilelistingpreview/{id}', [VendorMobileListingController::class, 
 Route::get('/customermobilelistingpreview/{id}', [CustomerMobileListingController::class, 'previewCustomerListing']);
 // Device details
 Route::get('/devicedetails/{id}', [HomeController::class, 'deviceDetails']);
+
+Route::get('/vendor-mobiles-device-details/{id}', [HomeController::class, 'vendorMobileDeviceDetails']);
 
 // Customer device details api
 Route::get('/customerdevicedetails/{id}', [MobileListingController::class, 'getCustomerDeviceDetail']);

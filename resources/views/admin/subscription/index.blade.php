@@ -54,7 +54,7 @@
                                                 <td>{{ $plan->description }}</td>
                                                 <td>
                                                     @if (Auth::guard('admin')->check() ||
-                                                            ($sideMenuPermissions->has('Subscription Plan') && $sideMenuPermissions['Subscription Plan']->contains('edit')))
+                                                            ($sideMenuPermissions->has('Subscription Plans') && $sideMenuPermissions['Subscription Plans']->contains('edit')))
                                                         <a href="{{ route('subscription.edit', $plan->id) }}"
                                                             class="btn btn-primary btn-action mr-1" data-toggle="tooltip"
                                                             title="Edit"><i class="fa fa-edit"></i></a>

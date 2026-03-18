@@ -8,9 +8,9 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="d-block card-header">
                                 <h4>Sub Admins</h4>
-                                <h6 class="text-danger" style="font-style: italic;">
+                                <h6 class="text-danger mb-0 mt-1" style="font-style: italic;">
                                     Note: The default password for all sub-admins is <strong>12345678</strong>. 
                                     This password is automatically generated when a new sub-admin is created.
                                 </h6>

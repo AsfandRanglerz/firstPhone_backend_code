@@ -14,9 +14,11 @@
                             </div>
 
                             <div class="card-body table-striped table-bordered table-responsive">
+                                 @if (Auth::guard('admin')->check() ||
+                                        ($sideMenuPermissions->has('Brands') && $sideMenuPermissions['Brands']->contains('create')))
                                 <button class="btn mb-3" style="background-color: #009245;"
                                     id="openCreateModal">Create</button>
-
+                                @endif
                                 <table class="table responsive" id="brandsTable">
                                     <thead>
                                         <tr>
@@ -43,11 +45,16 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex gap-1">
+                                                         @if (Auth::guard('admin')->check() ||
+                                                        ($sideMenuPermissions->has('Brands') && $sideMenuPermissions['Brands']->contains('edit')))
                                                         <button class="btn btn-primary editBrand"
                                                             data-id="{{ $brand->id }}" data-name="{{ $brand->name }}"
                                                             data-slug="{{ $brand->slug }}">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
+                                                        @endif
+                                                         @if (Auth::guard('admin')->check() ||
+                                                        ($sideMenuPermissions->has('Brands') && $sideMenuPermissions['Brands']->contains('delete')))
                                                         @if (!$existBrand)
                                                         <button class="btn deleteBrand" style="background-color: #009245;"
                                                             data-id="{{ $brand->id }}">
@@ -61,6 +68,7 @@
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
 
+                                                         @endif
                                                          @endif
                                                     </div>
                                                 </td>

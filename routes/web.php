@@ -87,16 +87,19 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
 
     // ############ Users #################
     Route::controller(UserController::class)->group(function () {
-        Route::get('/user', 'Index')->name('user.index')->middleware('check.permission:Users,view');
-        Route::get('/user-create', 'createview')->name('user.createview')->middleware('check.permission:Users,create');
-        Route::post('/user-store', 'create')->name('user.create')->middleware('check.permission:Users,create');
-        Route::get('/user-edit/{id}', 'edit')->name('user.edit')->middleware('check.permission:Users,edit');
-        Route::post('/user-update/{id}', 'update')->name('user.update')->middleware('check.permission:Users,edit');
-        Route::delete('/users-destory/{id}', 'delete')->name('user.delete')->middleware('check.permission:Users,delete');
-        Route::delete('/users/{id}/force', 'forceDelete')->name('user.forceDelete')->middleware('check.permission:Users,delete');
+        Route::get('/user', 'Index')->name('user.index')->middleware('check.permission:Customers,view');
+        Route::get('/user-create', 'createview')->name('user.createview')->middleware('check.permission:Customers,create');
+        Route::post('/user-store', 'create')->name('user.create')->middleware('check.permission:Customers,create');
+        Route::get('/user-edit/{id}', 'edit')->name('user.edit')->middleware('check.permission:Customers,edit');
+        Route::post('/user-update/{id}', 'update')->name('user.update')->middleware('check.permission:Customers,edit');
+        Route::delete('/users-destory/{id}', 'delete')->name('user.delete')->middleware('check.permission:Customers,delete');
+        Route::delete('/users/{id}/force', 'forceDelete')->name('user.forceDelete')->middleware('check.permission:Customers,delete');
         Route::post('/users/toggle-status', 'toggleStatus')->name('user.toggle-status');
         Route::post('/delete-selected-users', 'deleteSelected');
         Route::post('/delete-all-users', 'deleteAll');
+
+        //User ajax api
+        Route::get('/users-data', [UserController::class, 'getUsersData'])->name('users.data');
     });
 
 
@@ -114,51 +117,51 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
 
     // ############ Brands #################
     Route::controller(BrandsController::class)->group(function () {
-        Route::get('/brands', 'index')->name('brands.index')->middleware('check.permission:brands,view');
-        Route::get('/brands/create', 'create')->name('brands.create')->middleware('check.permission:create,view');
+        Route::get('/brands', 'index')->name('brands.index')->middleware('check.permission:Brands,view');
+        Route::get('/brands/create', 'create')->name('brands.create')->middleware('check.permission:Brands,create');
         Route::post('/brands/store', 'store')->name('brands.store');
-        Route::get('/brands/edit', 'edit')->name('brands.edit')->middleware('check.permission:edit,view');
-        Route::post('/brands/update/{id}', 'update')->name('brands.update')->middleware('check.permission:update,view');
-        Route::delete('/brands/delete/{id}', 'delete')->name('brands.delete')->middleware('check.permission:brands,delete');
+        Route::get('/brands/edit', 'edit')->name('brands.edit')->middleware('check.permission:Brands,edit');
+        Route::post('/brands/update/{id}', 'update')->name('brands.update')->middleware('check.permission:Brands,update');
+        Route::delete('/brands/delete/{id}', 'delete')->name('brands.delete')->middleware('check.permission:Brands,delete');
     });
 
     Route::controller(SubscriptionPlanController::class)->group(function () {
-        Route::get('/subscriptions', 'index')->name('subscription.index')->middleware('check.permission:Subscriptions,view');
-        Route::get('/subscriptions-create', 'create')->name('subscription.create')->middleware('check.permission:Subscriptions,create');
-        Route::post('/subscriptions-store', 'store')->name('subscription.store')->middleware('check.permission:Subscriptions,create');
-        Route::get('/subscriptions-edit/{id}', 'edit')->name('subscription.edit')->middleware('check.permission:Subscriptions,edit');
-        Route::post('/subscriptions-update/{id}', 'update')->name('subscription.update')->middleware('check.permission:Subscriptions,edit');
-        Route::delete('/subscriptions-destroy/{id}', 'delete')->name('subscription.delete')->middleware('check.permission:Subscriptions,delete');
+        Route::get('/subscriptions', 'index')->name('subscription.index')->middleware('check.permission:Subscription Plans,view');
+        Route::get('/subscriptions-create', 'create')->name('subscription.create')->middleware('check.permission:Subscription Plans,create');
+        Route::post('/subscriptions-store', 'store')->name('subscription.store')->middleware('check.permission:Subscription Plans,create');
+        Route::get('/subscriptions-edit/{id}', 'edit')->name('subscription.edit')->middleware('check.permission:Subscription Plans,edit');
+        Route::post('/subscriptions-update/{id}', 'update')->name('subscription.update')->middleware('check.permission:Subscription Plans,edit');
+        Route::delete('/subscriptions-destroy/{id}', 'delete')->name('subscription.delete')->middleware('check.permission:Subscription Plans,delete');
         Route::post('/subscription/toggle-status', 'toggleStatus')->name('subscription.toggle-status');
     });
 
     // ############ Models of Mobile #################
     Route::controller(ModelController::class)->group(function () {
-        Route::get('/brands/models/{id}', 'index')->name('brands.model.view')->middleware('check.permission:brands,view');
-        Route::post('/brands/models/store', 'store')->name('brands.model.store')->middleware('check.permission:brands,create');
-        Route::post('/brands/models/update/{id}', 'update')->name('brands.model.update')->middleware('check.permission:brands,update');
-        Route::delete('/brands/models/delete/{id}', 'destroy')->name('brands.model.delete')->middleware('check.permission:brands,delete');
+        Route::get('/brands/models/{id}', 'index')->name('brands.model.view')->middleware('check.permission:Models,view');
+        Route::post('/brands/models/store', 'store')->name('brands.model.store')->middleware('check.permission:Models,create');
+        Route::post('/brands/models/update/{id}', 'update')->name('brands.model.update')->middleware('check.permission:Models,update');
+        Route::delete('/brands/models/delete/{id}', 'destroy')->name('brands.model.delete')->middleware('check.permission:Models,delete');
     });
 
 
     // ############ Mobile Listings #################
     Route::controller(MobileListingController::class)->group(function () {
         Route::get('/mobilelisting/count', 'mobileListingCounter')->name('mobile.counter');
-        Route::get('/mobilelisting', 'index')->name('mobile.index')->middleware('check.permission:MobileListing,view');
+        Route::get('/mobilelisting', 'index')->name('mobile.index')->middleware('check.permission:Customer Mobiles,view');
         Route::get('/mobilelisting-show/{id}', 'show')->name('mobile.show');
         Route::post('/mobilelisting/approve/{id}', 'approve')->name('mobilelisting.approve');
         Route::post('/mobilelisting/reject/{id}', 'reject')->name('mobilelisting.reject');
         Route::post('/mobilelisting-update/{id}', 'update')->name('mobile.update')->middleware('check.permission:MobileListing,edit');
-        Route::delete('/mobilelisting-destroy/{id}', 'delete')->name('mobile.delete')->middleware('check.permission:MobileListing,delete');
+        Route::delete('/mobilelisting-destroy/{id}', 'delete')->name('mobile.delete')->middleware('check.permission:Customer Mobiles,delete');
         Route::post('/mobilelistingActivate/{id}', 'active')->name('mobile.activate');
         Route::post('/mobilelistingDeactivate/{id}', 'deactive')->name('mobile.deactivate');
     });
 
     // ############ Vendor Mobile Listings #################
     Route::controller(VendorMobileListingController::class)->group(function () {
-        Route::get('/listingvendor', 'index')->name('vendormobile.index')->middleware('check.permission:VendorMobileListing,view');
+        Route::get('/listingvendor', 'index')->name('vendormobile.index')->middleware('check.permission:Vendor Mobiles,view');
         Route::get('/listingvendor-show/{id}', 'show')->name('vendormobile.show');
-        Route::delete('/listingvendor-destroy/{id}', 'delete')->name('vendormobile.delete')->middleware('check.permission:VendorMobileListing,delete');
+        Route::delete('/listingvendor-destroy/{id}', 'delete')->name('vendormobile.delete')->middleware('check.permission:Vendor Mobiles,delete');
     });
 
     // ############ Mobile Requests #################
