@@ -70,7 +70,7 @@ if (!Auth::guard('admin')->check()) {
 
         ->editColumn('image', function ($user) {
             return $user->image
-                ? '<img src="'.asset($user->image).'" width="50">'
+                ? '<img src="'.asset($user->image).'" width="50" height="50">'
                 : '<img src="'.asset('public/admin/assets/images/default.png').'" width="50" height="50" alt="Default Image">';
         })
 

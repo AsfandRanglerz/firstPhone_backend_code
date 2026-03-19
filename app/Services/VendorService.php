@@ -101,6 +101,8 @@ class VendorService
     {
         $user = $this->vendorRepo->find($id);
 
+        $user->repair_service = $data['repair_service'];
+
         // ===== Profile Image Upload =====
         if (isset($data['image']) && $data['image']->isValid()) {
             if ($user->image && File::exists($user->image)) {

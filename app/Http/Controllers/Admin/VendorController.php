@@ -123,7 +123,7 @@ class VendorController extends Controller
         // ✅ Profile Image
         ->editColumn('image', function ($user) {
             return $user->image
-                ? '<img src="'.asset($user->image).'" width="50">'
+                ? '<img src="'.asset($user->image).'" width="50" height="50">'
                 : '<img src="'.asset('public/admin/assets/images/default.png').'" width="50" height="50" alt="Default Image">';
         })
 
@@ -272,8 +272,9 @@ class VendorController extends Controller
             'email',
             'phone',
             'location',
-            'repair_service'
         ]);
+
+         $data['repair_service'] = $request->has('has_repairing') ? 1 : 0;
 
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
