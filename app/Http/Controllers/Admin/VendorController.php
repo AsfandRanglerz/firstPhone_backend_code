@@ -46,10 +46,12 @@ class VendorController extends Controller
     $sideMenuPermissions = collect();
 
     if (!Auth::guard('admin')->check()) {
-        $user = Auth::guard('subadmin')->user()->load('roles');
+        $user = Auth::guard('subadmin')->user();
+
+         $roleId = $user->roles->first()->id ?? null;
 
         $permissions = UserRolePermission::with(['permission', 'sideMenue'])
-            ->where('role_id', $user->role_id)
+            ->where('role_id', $roleId)
             ->get();
 
         $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
@@ -128,13 +130,13 @@ class VendorController extends Controller
         // ✅ Status Dropdown
         ->addColumn('status', function ($user) use ($sideMenuPermissions) {
 
-            $canStatus = Auth::guard('admin')->check() ||
-                $sideMenuPermissions->flatten()->contains('status');
+            if (
+            Auth::guard('admin')->check() ||
+            ($sideMenuPermissions->has('Vendors') &&
+            $sideMenuPermissions['Vendors']->contains('status'))
+            )
 
-            if (!$canStatus) {
-                return ucfirst($user->status);
-            }
-
+            {
             $statusColors = [
                 'pending' => 'btn-warning',
                 'activated' => 'btn-primary',
@@ -161,6 +163,7 @@ class VendorController extends Controller
             $html .= '</div></div>';
 
             return $html;
+            }
         })
 
         // ✅ Actions (Edit + Delete)

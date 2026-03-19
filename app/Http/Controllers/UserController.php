@@ -38,13 +38,17 @@ class UserController extends Controller
 
     public function getUsersData(Request $request)
 {
+
     $sideMenuPermissions = collect();
+    
 
 if (!Auth::guard('admin')->check()) {
-    $user = Auth::guard('subadmin')->user()->load('roles');
+    $user = Auth::guard('subadmin')->user();
+
+    $roleId = $user->roles->first()->id ?? null;
 
     $permissions = UserRolePermission::with(['permission', 'sideMenue'])
-        ->where('role_id', $user->role_id)
+        ->where('role_id', $roleId)
         ->get();
 
     $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
@@ -70,8 +74,13 @@ if (!Auth::guard('admin')->check()) {
                 : '<img src="'.asset('public/admin/assets/images/default.png').'" width="50" height="50" alt="Default Image">';
         })
 
-        ->addColumn('toggle', function ($user) {
-            $checked = $user->toggle ? 'checked' : '';
+        ->addColumn('toggle', function ($user) use ($sideMenuPermissions) {
+            if (
+            Auth::guard('admin')->check() ||
+            ($sideMenuPermissions->has('Customers') &&
+            $sideMenuPermissions['Customers']->contains('status'))
+            )
+           { $checked = $user->toggle ? 'checked' : '';
             $statusText = $user->toggle ? 'Activated' : 'Deactivated';
 
             return '
@@ -81,6 +90,7 @@ if (!Auth::guard('admin')->check()) {
                 <span class="custom-switch-indicator"></span>
                 <span class="custom-switch-description">'.$statusText.'</span>
             </label>';
+           }
         })
 
         ->addColumn('actions', function ($user) use ($sideMenuPermissions) {
