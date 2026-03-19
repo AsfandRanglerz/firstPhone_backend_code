@@ -99,7 +99,7 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::post('/delete-all-users', 'deleteAll');
 
         //User ajax api
-        Route::get('/users-data',  'getUsersData')->name('users.data');
+        Route::get('/users-data',  'getUsersData')->name('users.data')->middleware('check.permission:Customers,view');
     });
 
 
@@ -114,7 +114,7 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::delete('/vendor-destroy/{id}', 'delete')->name('vendor.delete')->middleware('check.permission:Vendors,delete');
         Route::post('/vendor/update-status', 'updateStatus')->name('vendor.update-status');
         //Vendor ajax api
-         Route::get('/vendors-data',  'getVendorsData')->name('vendors.data');
+         Route::get('/vendors-data',  'getVendorsData')->name('vendors.data')->middleware('check.permission:Vendors,view');
     });
 
     // ############ Brands #################
