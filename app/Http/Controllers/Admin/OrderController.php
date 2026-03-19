@@ -137,7 +137,7 @@ class OrderController extends Controller
         $order->order_status = 'cancelled';
         $order->save();
 
-        }
+        }  
 
         return response()->json([
             'success' => true,

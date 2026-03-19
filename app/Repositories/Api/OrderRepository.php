@@ -40,7 +40,7 @@ class OrderRepository implements OrderRepositoryInterface
         }else{
             $data = [$status];
         }
-    return Order::with(['items.vendor'])
+    return Order::with(['items.vendor','cancelOrder'])
         ->where('customer_id', $customerId)
         ->whereIn('order_status', $data)
         ->latest()
@@ -66,7 +66,10 @@ class OrderRepository implements OrderRepositoryInterface
                 'order_status'    => $order->order_status,
                 'payment_status' => $order->payment_status,
                 'user_type'       => 'vendor',
-            ];
+                'cancel_order_image' => $order->cancelOrder?->proof_file_image 
+                    ? 'public/' . $order->cancelOrder->proof_file_image 
+                    : null,            
+                ];
         });
 }
 

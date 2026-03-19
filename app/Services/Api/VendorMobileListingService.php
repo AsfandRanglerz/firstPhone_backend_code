@@ -37,9 +37,9 @@ class VendorMobileListingService
     {
         $vendorId = Auth::id();
         $activePlan = VendorSubscription::with('plan')->where('vendor_id', $vendorId)->where('is_active', true)->first();
-        if (VendorSubscriptionProducts::where('vendor_subscription_id', $activePlan->id)->count() >= $activePlan->plan->product_limit) {
-            throw new AuthorizationException('You have reached the maximum number of listings allowed for your subscription plan');
-        }
+        // if (VendorSubscriptionProducts::where('vendor_subscription_id', $activePlan->id)->count() >= $activePlan->product_limit) {
+        //     throw new AuthorizationException('You have reached the maximum number of listings allowed for your subscription plan');
+        // }
         // ✅ Handle media upload
         $mediaPaths = [];
         if ($request->hasFile('image')) {

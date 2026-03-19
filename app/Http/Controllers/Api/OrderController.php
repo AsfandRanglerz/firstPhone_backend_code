@@ -384,7 +384,7 @@ class OrderController extends Controller
             $vendorId = Auth::id();
             if (!$vendorId) {
                 return ResponseHelper::error(null, 'Unauthorized', 'unauthorized');
-            }
+            } 
 
             $order = $this->orderRepository->updateOrderStatusByVendor(
                 $vendorId,

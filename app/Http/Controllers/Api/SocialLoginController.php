@@ -73,14 +73,14 @@ class SocialLoginController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-        $data = User::where('email', $request->email)->first();
-        if ($data && isset($data->toggle) && $data->toggle == 0) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Your account has been deactivated.',
-            ]);
-                // return ['error' => 'Your account has been deactivated.'];
-        }
+        // $data = User::where('email', $request->email)->first();
+        // if ($data && isset($data->toggle) && $data->toggle == 0) {
+        //     return response()->json([
+        //         'status'  => 'error',
+        //         'message' => 'Your account has been deactivated.',
+        //     ]);
+        //         // return ['error' => 'Your account has been deactivated.'];
+        // }
         $socialColumn = $request->login_type === 'apple' ? 'apple_social_id' : 'google_social_id';
 
         // Check existing user by social_id FIRST (priority to social login)
