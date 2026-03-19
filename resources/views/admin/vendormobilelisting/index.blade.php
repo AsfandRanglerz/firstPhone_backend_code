@@ -31,23 +31,23 @@
                                             <th>Condition</th>
                                             <th>Color</th>
                                             <th>Processor</th>
-                                            <th>Display</th>
+                                            <th>Screen Size (Inches)</th>
                                             <th>Charging</th>
                                             <th>Refresh Rate</th>
                                             <th>Main Camera</th>
                                             <th>Ultra Wide Camera</th>
                                             <th>Telephoto Camera</th>
                                             <th>Front Camera</th>
-                                            <th>Build</th>
-                                            <th>Wireless</th>
+                                            <th>Body Material</th>
+                                            {{-- <th>Wireless</th> --}}
                                             <th>Stock</th>
                                             <th>PTA Approved</th>
                                             <th>AI Features</th>
-                                            <th>Battery Health (Hours)</th>
+                                            <th>Battery Health (%)</th>
                                             <th>OS Version</th>
-                                            <th>Warranty Start</th>
-                                            <th>Warranty End</th>
-                                            <th>About</th>
+                                            <th>Warranty Start Date</th>
+                                            <th>Warranty End Date</th>
+                                            <th>Description</th>
                                             <th>Images/Videos</th>
                                             <th>Actions</th>
                                         </tr>
@@ -179,13 +179,13 @@
                                                  <span class="text-muted">No Build</span>   
                                                 @endif
                                                 </td>
-                                                <td>
+                                                {{-- <td>
                                                 @if($mobile->wireless)
                                                     {{ $mobile->wireless }}
                                                 @else
                                                  <span class="text-muted">No Wireless</span>   
                                                 @endif
-                                                </td>
+                                                </td> --}}
                                                 <td>
                                                 @if($mobile->stock)
                                                     {{ $mobile->stock }}

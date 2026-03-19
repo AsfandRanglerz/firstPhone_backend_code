@@ -91,7 +91,7 @@ class NotificationController extends Controller
             );
         }
 
-
+    
         // Dispatch job
         SendNotificationJob::dispatch([
             'sent_by' => 'admin',

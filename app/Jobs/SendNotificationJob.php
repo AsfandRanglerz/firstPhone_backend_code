@@ -36,7 +36,7 @@ class SendNotificationJob implements ShouldQueue
             'description' => $this->data['description'],
             'sent_by' => $this->data['sent_by'],
         ]);
-
+     
         foreach ($this->userIds as $user) {
             if (!isset($user['id'], $user['type'])) {
                 continue;
