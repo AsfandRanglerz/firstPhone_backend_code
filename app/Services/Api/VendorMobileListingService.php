@@ -95,6 +95,8 @@ class VendorMobileListingService
             'video' => json_encode($videoPaths),
         ];
 
+        $data['city'] = $this->updateCitiesFromLocation($request->location);
+
         $listing = $this->vendormobileListingRepo->create($data);
         
         $listing->load('brand', 'model');
@@ -239,6 +241,9 @@ class VendorMobileListingService
         $data['image'] = json_encode($images);
         $data['video'] = json_encode($videos);
 
+        $location = $request->has('location') ? $request->location : $listing->location;
+        $data['city'] = $this->updateCitiesFromLocation($location);
+
         $updated = $this->vendormobileListingRepo->update($id, $data);
         $updated->refresh();
         $updated->load('brand', 'model');
@@ -356,6 +361,87 @@ class VendorMobileListingService
         ];
     }
 
+public function updateCitiesFromLocation($location)
+{
+    $cities = [
+        'Lahore','Raiwind','Shahdara','Kasur','Chunian','Pattoki','Kot Radha Kishan',
+        'Faisalabad','Jaranwala','Samundri','Tandlianwala','Chak Jhumra',
+        'Gojra','Toba Tek Singh','Kamalia','Pir Mahal',
+        'Rawalpindi','Taxila','Wah Cantonment','Kahuta','Kotli Sattian','Murree',
+        'Multan','Shujabad','Jalalpur Pirwala',
+        'Gujranwala','Kamoke','Wazirabad','Nowshera Virkan',
+        'Sialkot','Daska','Sambrial','Pasrur',
+        'Narowal','Shakargarh','Zafarwal',
+        'Gujrat','Kharian','Sarai Alamgir','Lalamusa',
+        'Mandi Bahauddin','Phalia','Malakwal',
+        'Sargodha','Bhalwal','Sillanwali','Shahpur','Kot Momin',
+        'Bhakkar','Darya Khan','Kalur Kot',
+        'Mianwali','Isa Khel','Piplan',
+        'Attock','Hazro','Hasan Abdal','Jand',
+        'Jhelum','Dina','Sohawa',
+        'Chakwal','Kallar Kahar','Choa Saidan Shah','Lawa',
+        'Bahawalpur','Ahmadpur East','Yazman','Hasilpur','Khairpur Tamewali',
+        'Bahawalnagar','Chishtian','Haroonabad','Fort Abbas','Minchinabad',
+        'Rahim Yar Khan','Sadiqabad','Khanpur','Liaquatpur',
+        'Okara','Depalpur','Renala Khurd','Haveli Lakha',
+        'Sahiwal','Chichawatni',
+        'Pakpattan','Arifwala',
+        'Vehari','Burewala','Mailsi',
+        'Khanewal','Kabirwala','Jahanian','Mian Channu',
+        'Lodhran','Dunyapur','Kahror Pakka',
+        'Dera Ghazi Khan','Taunsa',
+        'Muzaffargarh','Kot Addu','Alipur','Jatoi',
+        'Layyah','Karor Lal Esan',
+        'Rajanpur','Jampur','Rojhan',
+        'Sheikhupura','Ferozewala','Muridke','Sharaqpur',
+        'Nankana Sahib','Sangla Hill','Safdarabad',
+        'Hafizabad','Pindi Bhattian',
+        'Chiniot','Lalian','Bhawana',
+        'Karachi','Hyderabad','Sukkur','Larkana','Nawabshah','Mirpur Khas',
+        'Jacobabad','Shikarpur','Khairpur','Dadu','Badin','Thatta','Umerkot',
+        'Tando Adam','Tando Allahyar','Tando Muhammad Khan',
+        'Kashmore','Kandhkot','Ghotki','Daharki','Rohri','Pano Aqil',
+        'Kotri','Jamshoro','Sehwan','Matiari','Hala',
+        'Sanghar','Shahdadpur','Sinjhoro','Khipro','Jhol',
+        'Digri','Kunri','Samaro','Chhor','Mithi','Islamkot','Diplo','Nagarparkar',
+        'Ratodero','Dokri','Naudero','Warah','Qambar','Shahdadkot',
+        'Nasirabad','Mehar','Khairpur Nathan Shah',
+        'Ubauro','Mirpur Mathelo',
+        'Keti Bandar','Gharo','Mirpur Bathoro','Sujawal','Jati',
+        'Peshawar','Mardan','Abbottabad','Mingora','Saidu Sharif',
+        'Kohat','Bannu','Dera Ismail Khan','Charsadda','Nowshera',
+        'Mansehra','Haripur','Swabi','Tank','Hangu',
+        'Battagram','Shangla','Dir','Timergara',
+        'Balakot','Oghi','Batkhela','Chakdara',
+        'Drosh','Chitral','Upper Dir','Lower Dir',
+        'Lakki Marwat','Parachinar','Kurram','Orakzai',
+        'Wana','South Waziristan','Miranshah','North Waziristan',
+        'Shabqadar','Tangi','Takht Bhai','Katlang','Rustam',
+        'Topi','Zaida','Tordher','Ghazi',
+        'Kabal','Matta','Khwazakhela','Buner','Daggar',
+        'Quetta','Gwadar','Turbat','Khuzdar','Chaman','Sibi','Zhob','Loralai',
+        'Dera Murad Jamali','Hub','Panjgur','Nushki','Dalbandin','Kharan',
+        'Mastung','Kalat','Surab','Uthal','Bela','Pasni','Ormara',
+        'Awaran','Hoshab','Washuk','Dera Allah Yar','Jaffarabad',
+        'Jhal Magsi','Mach','Duki','Musakhel','Barkhan',
+        'Islamabad','Gilgit','Skardu','Hunza','Chilas','Ghanche','Ghizer',
+        'Khaplu','Shigar','Astore','Darel','Tangir',
+        'Muzaffarabad','Mirpur','Kotli','Bagh','Rawalakot',
+        'Bhimber','Hattian Bala','Neelum','Athmuqam',
+        'Forward Kahuta','Dadyal','Samahni'
+    ];
 
+    $locationLower = strtolower($location ?? '');
+    $matchedCity = null;
+
+    foreach ($cities as $city) {
+        if (preg_match("/\b" . preg_quote(strtolower($city), '/') . "\b/", $locationLower)) {
+            $matchedCity = $city;
+            break;
+        }
+    }
+
+    return $matchedCity;
+}
 
 }

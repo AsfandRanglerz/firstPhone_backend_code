@@ -621,7 +621,35 @@ public function getMinMaxPrice()
 }
 
 
+public function getCities()
+{
+    try {
 
+        $cities = VendorMobile::where('status', 0)
+            ->whereNotNull('city')
+            ->select('city')
+            ->distinct()
+            ->pluck('city');
+
+        $formatted = $cities->map(fn($city) => [
+            'label' => $city,
+            'value' => $city
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted->values()
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+
+    }
+}
 
 
 }

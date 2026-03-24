@@ -90,6 +90,9 @@ Route::post('/check-email', [AuthController::class, 'checkEmail']);
 Route::post('/social-login', [SocialLoginController::class, 'socialLogin']);
 Route::post('/apple-login', [SocialLoginController::class, 'appleLogin']);
 
+// get cities api
+Route::get('/get-cities',[MobileFilterController::class,'getCities']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/getProfile', [AuthController::class, 'getProfile']);
