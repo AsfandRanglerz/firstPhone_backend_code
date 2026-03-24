@@ -54,11 +54,17 @@ if (!Auth::guard('admin')->check()) {
     $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
         ->map(fn($items) => $items->pluck('permission.name'));
 }
-    $query = User::select('id','name','email','phone','image','toggle')
+    $query = User::select('id','name','email','phone','image','toggle','created_at')
         ->orderBy('id','desc');
 
     return datatables()->of($query)
         ->addIndexColumn()
+
+        ->editColumn('created_at', function ($user) {
+            return $user->created_at
+                ? $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A')
+                : '';
+        })
 
         ->editColumn('email', function ($user) {
             return '<a href="mailto:'.$user->email.'">'.$user->email.'</a>';

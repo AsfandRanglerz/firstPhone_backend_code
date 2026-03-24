@@ -30,6 +30,7 @@
                                     <thead>
                                         <tr>
                                             <th>Sr.</th>
+                                            <th>Date & Time</th>
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Phone</th>
@@ -100,6 +101,7 @@
 
     columns: [
         { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false},
+        { data: 'created_at', name: 'created_at' },
         { data: 'name', name: 'name' },
         { data: 'email', name: 'email' },
         { data: 'phone', name: 'phone' },

@@ -303,6 +303,11 @@
 @section('js')
     <script>
         $(document).ready(function() {
+            $(document).keydown(function (e) {
+                if (e.key === "Escape") {
+                    $('.modal.show').modal('hide');
+                }
+            });
             // Initialize DataTable
             $('#table_id_events').DataTable();
 

@@ -135,6 +135,12 @@
 <script>
     $(document).ready(function() {
 
+        $(document).keydown(function (e) {
+            if (e.key === "Escape") {
+                $('.modal.show').modal('hide');
+            }
+        });
+
         // ===== Initialize DataTable with Responsiveness =====
         const table = $('#table_id_events').DataTable({
             processing: true,

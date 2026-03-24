@@ -147,6 +147,11 @@
 @section('js')
     <script>
         $(document).ready(function() {
+             $(document).keydown(function (e) {
+                if (e.key === "Escape") {
+                    $('.modal.show').modal('hide');
+                }
+             });
             let table = $('#brandsTable').DataTable();
 
             function getBrandInputSet(index = null, showRemove = false) {
@@ -217,7 +222,9 @@
     }
 
     toastr.success('Model Created Successfully');
-    $('#brandModal').modal('hide');
+    setTimeout(function () {
+        location.reload();
+     }, 3000);
 },
         error: function(xhr) {
             if (xhr.status === 422) {
