@@ -89,15 +89,36 @@ class NotificationController extends Controller
                 array_map(fn($id) => ['id' => $id, 'type' => 'users'], $userIds),
                 array_map(fn($id) => ['id' => $id, 'type' => 'vendors'], $vendorIds),
             );
+        } 
+
+        $notification = Notification::create([
+                'sent_by' => 'admin',
+                'user_type' => $request->user_type,
+                'title' => $request->title,
+                'description' => $request->description,
+            ]);
+        foreach ($users as $user) {
+            if (!isset($user['id'], $user['type'])) {
+                continue;
+            }
+            $modelClass = $user['type'] === 'users' ? User::class : Vendor::class;
+            $model = $modelClass::find($user['id']);
+            if (!$model) continue; 
+            NotificationTarget::create([
+                'notification_id' => $notification->id,
+                'targetable_id' => $model->id,
+                'targetable_type' => $modelClass,
+            ]);
         }
 
     
-        // Dispatch job
+          // Dispatch job
         SendNotificationJob::dispatch([
             'sent_by' => 'admin',
             'user_type' => $request->user_type,
             'title' => $request->title,
             'description' => $request->description,
+            'notification_id' => $notification->id
         ], $users);
 
         return redirect()->route('notification.index')->with('success', 'Notification Sent Successfully');

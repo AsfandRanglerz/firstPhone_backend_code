@@ -20,24 +20,19 @@ class SendNotificationJob implements ShouldQueue
 
     protected array $data;
     protected array $userIds;
-
+   
     public function __construct(array $data, array $userIds)
     {
         $this->data = $data;
         $this->userIds = $userIds;
     }
-
+                
     public function handle(): void
     {
         Log::info($this->data);
-        $notification = Notification::create([
-            'user_type' => $this->data['user_type'],
-            'title' => $this->data['title'],
-            'description' => $this->data['description'],
-            'sent_by' => $this->data['sent_by'],
-        ]);
-     
+
         foreach ($this->userIds as $user) {
+
             if (!isset($user['id'], $user['type'])) {
                 continue;
             }
@@ -47,12 +42,6 @@ class SendNotificationJob implements ShouldQueue
 
             if (!$model) continue;
 
-            NotificationTarget::create([
-                'notification_id' => $notification->id,
-                'targetable_id' => $model->id,
-                'targetable_type' => $modelClass,
-            ]);
-
             if (!empty($model->fcm_token)) {
                 NotificationHelper::sendFcmNotification(
                     $model->fcm_token,
@@ -60,7 +49,7 @@ class SendNotificationJob implements ShouldQueue
                     $this->data['description'],
                     [
                         'user_type' => $this->data['user_type'],
-                        'notification_id' => $notification->id,
+                        'notification_id' => $this->data['notification_id'],
                     ]
                 );
             }
