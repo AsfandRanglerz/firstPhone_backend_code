@@ -10,7 +10,7 @@
     <link rel="stylesheet"
         href="https://www.ranglerz.com/cost-to-make-a-web-ios-or-android-app-and-how-long-does-it-take.php">
     <!-- ========== Favicon ========== -->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('public/admin/assets/img/favicon2.png') }}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('public/admin/assets/img/logo.jpg') }}" />
 
     <!-- ========== External CSS Libraries (CDN) ========== -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">

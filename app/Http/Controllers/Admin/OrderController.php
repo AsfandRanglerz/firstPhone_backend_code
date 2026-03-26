@@ -6,11 +6,13 @@ use App\Helpers\NotificationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\admin;
 use App\Models\CancelOrder;
-use App\Models\Order;
 use App\Models\Notification;
 use App\Models\NotificationTarget;
-use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\UserRolePermission;
 use App\Repositories\Interfaces\OrderRepoInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -23,13 +25,13 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = $this->orderRepo->getAllOrders();
+        // $orders = $this->orderRepo->getAllOrders();
         $statuses = ['inprogress', 'shipped', 'delivered', 'cancelled'];
 
         $totals = $this->orderRepo->getTotals();
 
         return view('admin.order.index', [
-            'orders'      => $orders,
+            // 'orders'      => $orders,
             'statuses'    => $statuses,
             'total'       => $totals['total'],
             'codTotal'    => $totals['codTotal'],
@@ -37,6 +39,155 @@ class OrderController extends Controller
             'pickupTotal' => $totals['pickupTotal'],
         ]);
     }
+
+    public function getOrdersData(Request $request)
+{
+    $sideMenuPermissions = collect();
+
+    if (!Auth::guard('admin')->check()) {
+        $user = Auth::guard('subadmin')->user();
+        $roleId = $user->roles->first()->id ?? null;
+
+        $permissions = UserRolePermission::with(['permission', 'sideMenue'])
+            ->where('role_id', $roleId)
+            ->get();
+
+        $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
+            ->map(fn($items) => $items->pluck('permission.name'));
+    }
+
+    $query = Order::with(['customer','items.vendor','items.product.brand','items.product.model'])
+        ->latest();
+
+    return datatables()->of($query)
+
+        ->addIndexColumn()
+
+        // 📅 Date
+        ->editColumn('created_at', function ($order) {
+            return $order->created_at
+                ? $order->created_at->format('d M Y, h:i A')
+                : '';
+        })
+
+        // 🆔 Order ID
+        ->addColumn('order_number', function ($order) {
+            return '#'.$order->order_number;
+        })
+
+        // 👤 Customer
+        ->addColumn('customer', function ($order) {
+            if (!$order->customer) return 'N/A';
+
+            return $order->customer->name.'<br>
+                <small><a href="mailto:'.$order->customer->email.'">'.$order->customer->email.'</a></small><br>
+                <small><a href="tel:'.$order->customer->phone.'">'.$order->customer->phone.'</a></small>';
+        })
+
+        // 🏪 Vendor (Buy From)
+        ->addColumn('vendor', function ($order) {
+
+            $vendor = $order->items->first()->vendor ?? null;
+
+            if (!$vendor) return 'No Vendor';
+
+            return $vendor->name.'<br>
+                <small><a href="mailto:'.$vendor->email.'">'.$vendor->email.'</a></small><br>
+                <small><a href="tel:'.$vendor->phone.'">'.$vendor->phone.'</a></small>';
+        })
+
+        // 📱 Products
+        ->addColumn('products', function ($order) {
+
+            $html = '';
+
+            foreach ($order->items as $item) {
+
+                $brand = $item->product->brand->name ?? $item->brand_name;
+                $model = $item->product->model->name ?? $item->model_name;
+
+                $html .= $brand.' '.$model.'<br>
+                (Qty: '.$item->quantity.', Price: '.number_format($item->price,2).')<br>';
+            }
+
+            return $html;
+        })
+
+        // 💰 Total Price
+        ->addColumn('total_price', function ($order) {
+            $total = $order->items->sum(fn($item) => $item->price * $item->quantity);
+            return number_format($total);
+        })
+
+        // 🚚 Shipping
+        ->addColumn('shipping', function ($order) {
+            return $order->shipping_charges
+                ? number_format($order->shipping_charges)
+                : '<span class="text-muted">No Shipping Charges</span>';
+        })
+
+        // 💳 Payment Status
+        ->addColumn('payment_status', function ($order) {
+
+            $colors = [
+                'paid' => 'bg-success',
+                'unpaid' => 'bg-warning',
+            ];
+
+            $class = $colors[$order->payment_status] ?? 'bg-secondary';
+
+            return '<span class="badge '.$class.'">'
+                .ucfirst(str_replace('_',' ',$order->payment_status)).
+                '</span>';
+        })
+
+        // 🚚 Delivery Method
+        ->addColumn('delivery_method', function ($order) {
+
+            $labels = [
+                'cod' => 'COD',
+                'online' => 'Online',
+                'go_shop' => 'GoShop',
+            ];
+
+            $classes = [
+                'cod' => 'bg-warning',
+                'online' => 'bg-primary',
+                'go_shop' => 'bg-info',
+            ];
+
+            $class = $classes[$order->delivery_method] ?? 'bg-secondary';
+
+            return '<span class="badge '.$class.'">'
+                .($labels[$order->delivery_method] ?? ucwords(str_replace('_',' ',$order->delivery_method)))
+                .'</span>';
+        })
+
+        // 📦 Order Status
+        ->addColumn('order_status', function ($order) {
+
+            $colors = [
+                'inprogress' => 'bg-warning',
+                'shipped' => 'bg-secondary',
+                'delivered' => 'bg-primary',
+                'cancelled' => 'bg-danger',
+            ];
+
+            $class = $colors[$order->order_status] ?? 'bg-light';
+
+            return '<span class="badge '.$class.'">'
+                .ucfirst(str_replace('_',' ',$order->order_status)).
+                '</span>';
+        })
+
+        ->rawColumns([
+            'customer','vendor','products',
+            'shipping','payment_status',
+            'delivery_method','order_status'
+        ])
+
+        ->make(true);
+}
 
 
     public function destroy($id)
@@ -105,18 +256,193 @@ class OrderController extends Controller
 
     public function cancel_order()
     {
-        $cancelOrders = CancelOrder::with([
-            'order.customer',
-            'orderItem.vendor'
-        ])
-        ->whereHas('order', function ($query) {
-        $query->where('delivery_method', 'online');
-        })
-        ->latest()
-        ->get();
+        // $cancelOrders = CancelOrder::with([
+        //     'order.customer',
+        //     'orderItem.vendor'
+        // ])
+        // ->whereHas('order', function ($query) {
+        // $query->where('delivery_method', 'online');
+        // })
+        // ->latest()
+        // ->get();
 
-        return view('admin.order.cancel', compact('cancelOrders'));
+        return view('admin.order.cancel');
     }
+
+    public function getCancelOrdersData(Request $request)
+{
+    $sideMenuPermissions = collect();
+
+    if (!Auth::guard('admin')->check()) {
+        $user = Auth::guard('subadmin')->user();
+        $roleId = $user->roles->first()->id ?? null;
+
+        $permissions = UserRolePermission::with(['permission', 'sideMenue'])
+            ->where('role_id', $roleId)
+            ->get();
+
+        $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
+            ->map(fn($items) => $items->pluck('permission.name'));
+    }
+
+    $query = CancelOrder::with([
+            'order.customer',
+            'orderItem.vendor',
+            'orderItem.product.brand',
+            'orderItem.product.model'
+        ])
+        ->whereHas('order', function ($q) {
+            $q->where('delivery_method', 'online');
+        })
+        ->latest();
+
+    return datatables()->of($query)
+
+        ->addIndexColumn()
+
+        // 📅 Date
+        ->editColumn('created_at', function ($c) {
+            return $c->created_at
+                ? $c->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A')
+                : '';
+        })
+
+        // 🆔 Order ID
+        ->addColumn('order_id', function ($c) {
+            return '#'.($c->order->order_number ?? '-');
+        })
+
+        // 📱 Product
+        ->addColumn('order_item', function ($c) {
+            $brand = $c->orderItem->product->brand->name ?? '-';
+            $model = $c->orderItem->product->model->name ?? '-';
+            return $brand.' - '.$model;
+        })
+
+        // 🏪 Vendor
+        ->addColumn('vendor', function ($c) {
+            return $c->orderItem->vendor->name ?? '-';
+        })
+
+        // 📝 Reason
+        ->addColumn('reason', fn($c) => $c->reason ?? '')
+
+        // 🚚 Delivery Method
+        ->addColumn('delivery_method', function ($c) {
+
+            $method = $c->order->delivery_method ?? '';
+
+            return match ($method) {
+                'cod' => '<span class="badge bg-warning">COD</span>',
+                'online' => '<span class="badge bg-primary">Online</span>',
+                'pickup' => '<span class="badge bg-info">GoShop</span>',
+                default => '<span class="badge bg-secondary">'.ucfirst($method).'</span>',
+            };
+        })
+
+        // 📎 Proof
+        ->addColumn('proof', function ($c) {
+            if ($c->proof_file_image) {
+                return '<button class="btn btn-sm btn-info view-proof"
+                    data-front="'.asset('public/'.$c->proof_file_image).'">
+                    View
+                </button>';
+            }
+            return '<span class="text-muted">No Proof</span>';
+        })
+
+        // 🚦 Status (FULL DROPDOWN LOGIC)
+        ->addColumn('status', function ($c) use ($sideMenuPermissions) {
+
+            if (
+                Auth::guard('admin')->check() ||
+                ($sideMenuPermissions->has('Cancel Orders') &&
+                $sideMenuPermissions['Cancel Orders']->contains('status'))
+            ) {
+
+                $colors = [
+                    'requested' => 'btn-warning',
+                    'approved' => 'btn-success',
+                    'rejected' => 'btn-danger',
+                ];
+
+                // ✅ Approved → only badge
+                if ($c->status === 'approved') {
+                    return '<span class="btn btn-success btn-sm">Approved</span>';
+                }
+
+                $html = '<div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle '.$colors[$c->status].'"
+                        data-toggle="dropdown">'
+                        .ucfirst($c->status).'
+                    </button>
+                    <div class="dropdown-menu">';
+
+                // requested → both options
+                if ($c->status === 'requested') {
+                    $html .= '
+                        <button class="dropdown-item change-cancel-status"
+                            data-id="'.$c->id.'" data-new-status="approved">
+                            Approved
+                        </button>
+
+                        <button class="dropdown-item change-cancel-status"
+                            data-id="'.$c->id.'" data-new-status="rejected">
+                            Rejected
+                        </button>';
+                }
+
+                // rejected → only approve
+                if ($c->status === 'rejected') {
+                    $html .= '
+                        <button class="dropdown-item change-cancel-status"
+                            data-id="'.$c->id.'" data-new-status="approved">
+                            Approved
+                        </button>';
+                }
+
+                $html .= '</div></div>';
+
+                return $html;
+            }
+
+            return '';
+        })
+
+        // ⚙️ Actions
+        ->addColumn('action', function ($c) use ($sideMenuPermissions) {
+
+            $btn = '';
+
+            if (
+                Auth::guard('admin')->check() ||
+                ($sideMenuPermissions->has('Cancel Orders') &&
+                $sideMenuPermissions['Cancel Orders']->contains('delete'))
+            ) {
+
+                $btn .= '
+                <form id="delete-form-'.$c->id.'"
+                    action="'.route('cancel-orders.destroy',$c->id).'"
+                    method="POST">
+                    '.csrf_field().method_field('DELETE').'
+                </form>
+
+                <button class="show_confirm btn"
+                    style="background-color:#009245"
+                    data-form="delete-form-'.$c->id.'">
+                    <i class="fa fa-trash"></i>
+                </button>';
+            }
+
+            return $btn;
+        })
+
+        ->rawColumns([
+            'delivery_method','proof','status','action'
+        ])
+
+        ->make(true);
+}
 
     public function updateCancelStatus(Request $request, $id)
     {
@@ -175,31 +501,31 @@ class OrderController extends Controller
                     'message' => "Your order #{$order->order_number} has been cancelled."
                 ]
             ];
-            foreach ($notifications as $notify) {
-                $notification = Notification::create([
-                    'user_type' => $notify['user_type'] ?? null,
-                    'title' => $notify['title'] ?? null,
-                    'description' => $notify['message'] ?? null,
-                ]);
-                NotificationTarget::create([
-                    'notification_id' => $notification->id,
-                    'targetable_id' => $notify['targetable_id'] ?? null,
-                    'targetable_type' => $notify['targetable_type'] ?? null,
-                    'type' => 'order_cancellation',
-                ]);
+            // foreach ($notifications as $notify) {
+            //     $notification = Notification::create([
+            //         'user_type' => $notify['user_type'] ?? null,
+            //         'title' => $notify['title'] ?? null,
+            //         'description' => $notify['message'] ?? null,
+            //     ]);
+            //     NotificationTarget::create([
+            //         'notification_id' => $notification->id,
+            //         'targetable_id' => $notify['targetable_id'] ?? null,
+            //         'targetable_type' => $notify['targetable_type'] ?? null,
+            //         'type' => 'order_cancellation',
+            //     ]);
 
-                if (!empty($notify['token'])) { // null token se bachne ke liye
-                    NotificationHelper::sendFcmNotification(
-                        $notify['token'],
-                        "Order Cancelled",
-                        $notify['message'],
-                        [
-                            'type' => 'order_cancellation',
-                            'order_id' => (string) $cancelOrder->order_id,
-                        ]
-                    );
-                }
-            }
+            //     if (!empty($notify['token'])) { // null token se bachne ke liye
+            //         NotificationHelper::sendFcmNotification(
+            //             $notify['token'],
+            //             "Order Cancelled",
+            //             $notify['message'],
+            //             [
+            //                 'type' => 'order_cancellation',
+            //                 'order_id' => (string) $cancelOrder->order_id,
+            //             ]
+            //         );
+            //     }
+            // }
             // return [$notifications, $order];
 
             return response()->json([

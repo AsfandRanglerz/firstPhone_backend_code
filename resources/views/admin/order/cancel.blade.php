@@ -33,7 +33,7 @@
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @foreach ($cancelOrders as $index => $cancelOrder)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
@@ -78,7 +78,7 @@
                                                         ];
                                                     @endphp
 
-                                                    {{-- If status is approved, show badge only --}}
+                                                    If status is approved, show badge only
                                                     @if ($cancelOrder->status === 'approved')
 
                                                         <span class="btn btn-success btn-lg" disabled>
@@ -97,7 +97,7 @@
 
                                                             <div class="dropdown-menu">
 
-                                                                {{-- If status = requested → show both options --}}
+                                                                If status = requested → show both options
                                                                 @if ($cancelOrder->status === 'requested')
 
                                                                     <button type="button"
@@ -114,7 +114,7 @@
                                                                         Rejected
                                                                     </button>
 
-                                                                {{-- If status = rejected → show only approved --}}
+                                                                If status = rejected → show only approved
                                                                 @elseif ($cancelOrder->status === 'rejected')
 
                                                                     <button type="button"
@@ -151,7 +151,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div>
                         </div>
@@ -211,7 +211,26 @@
             if ($.fn.DataTable.isDataTable('#table_id_events')) {
                 $('#table_id_events').DataTable().destroy();
             }
-            $('#table_id_events').DataTable();
+            $('#table_id_events').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('cancel.orders.data') }}",
+
+                columns: [
+                    { data: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'created_at' },
+                    { data: 'order_id' },
+                    { data: 'order_item' },
+                    { data: 'vendor' },
+                    { data: 'reason' },
+                    { data: 'delivery_method', orderable: false, searchable: false },
+                    { data: 'proof', orderable: false, searchable: false },
+                    { data: 'status', orderable: false, searchable: false },
+                    { data: 'action', orderable: false, searchable: false }
+                ],
+
+                pageLength: 10
+            });
 
             // Delete confirmation
             $(document).on('click', '.show_confirm', function(event) {

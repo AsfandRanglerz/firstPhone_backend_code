@@ -88,7 +88,7 @@ button.bg-warning:hover{
                                             {{-- <th>Actions</th> --}}
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                     {{-- <tbody>
                                         @foreach ($orders as $index => $order)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
@@ -101,9 +101,9 @@ button.bg-warning:hover{
                                                     <small><a
                                                             href="tel:{{ $order->customer->phone }}">{{ $order->customer->phone }}</a></small>
                                                 </td>
-                                                {{-- <td>
+                                                <td>
                                                     {{ $order->shipping_address ?? 'N/A' }}
-                                                </td> --}}
+                                                </td>
                                                 <td>
                                                     {{ $order->items->first()->vendor->name ?? 'No Vendor' }}<br>
 
@@ -145,7 +145,7 @@ button.bg-warning:hover{
                                                         $paymentColors = [
                                                             'paid' => 'btn-success',
                                                             'unpaid' => 'btn-warning',
-                                                            // 'unpaid' => 'btn-secondary',
+                                                            'unpaid' => 'btn-secondary',
                                                         ];
                                                     @endphp
 
@@ -169,7 +169,7 @@ button.bg-warning:hover{
                                                             'go_shop' => 'bg-info',
                                                         ];
 
-                                                        // ensure variable exists for current order
+                                                        ensure variable exists for current order
                                                         $deliveryClass =
                                                             $deliveryClassMap[$order->delivery_method] ??
                                                             'bg-secondary';
@@ -182,7 +182,7 @@ button.bg-warning:hover{
 
 
                                                 @php
-                                                    // Order Status Colors (new statuses only)
+                                                    Order Status Colors (new statuses only)
                                                     $statusColors = [
                                                         'inprogress' => 'btn-warning',
                                                         'shipped' => 'btn-secondary',
@@ -197,7 +197,7 @@ button.bg-warning:hover{
                                                     </span>
                                                 </td>
 
-                                                {{-- <td>
+                                                <td>
                                                     @if (Auth::guard('admin')->check() ||
                                                             ($sideMenuPermissions->has('Orders') && $sideMenuPermissions['Orders']->contains('delete')))
                                                         <form id="delete-form-{{ $order->id }}"
@@ -212,10 +212,10 @@ button.bg-warning:hover{
                                                             <span><i class="fa fa-trash"></i></span>
                                                         </button>
                                                     @endif
-                                                </td> --}}
+                                                </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody>  --}}
                                 </table>
                             </div>
                         </div>
@@ -235,7 +235,27 @@ button.bg-warning:hover{
             if ($.fn.DataTable.isDataTable('#table_id_events')) {
                 $('#table_id_events').DataTable().destroy();
             }
-            $('#table_id_events').DataTable();
+            $('#table_id_events').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: "{{ route('orders.data') }}",
+
+                    columns: [
+                        { data: 'DT_RowIndex', orderable: false, searchable: false },
+                        { data: 'order_number' },
+                        { data: 'created_at' },
+                        { data: 'customer' },
+                        { data: 'vendor' },
+                        { data: 'products' },
+                        { data: 'total_price' },
+                        { data: 'shipping' },
+                        { data: 'payment_status', orderable: false, searchable: false },
+                        { data: 'delivery_method', orderable: false, searchable: false },
+                        { data: 'order_status', orderable: false, searchable: false }
+                    ],
+
+                    pageLength: 10
+                });
 
             // ===== SweetAlert2 Delete Confirmation =====
             $(document).on('click', '.show_confirm', function(event) {

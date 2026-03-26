@@ -110,7 +110,7 @@
         { data: 'actions', name: 'actions', orderable: false, searchable: false }
     ],
 
-    pageLength: 25,
+    pageLength: 10,
 });
 
     // SweetAlert2 delete confirmation using event delegation

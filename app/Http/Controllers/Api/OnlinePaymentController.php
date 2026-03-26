@@ -74,11 +74,7 @@ class OnlinePaymentController extends Controller
                     'quantity'   => $products['quantity'] ?? 1,
                     'price'      => $products['price'],
 
-<<<<<<< HEAD
-                    'brand_name'   => $productData->brand->name ?? null,
-=======
                    'brand_name'   => $productData->brand->name ?? null,
->>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
                     'model_name'   => $productData->model->name ?? null,
                     'location'     => $productData->location ?? null,
                     'latitude'     => $productData->latitude ?? null,
@@ -117,13 +113,8 @@ class OnlinePaymentController extends Controller
                 // Handle Multiple Products
                 foreach ($products as $product) {
                     $vendorIds[] = $product['vendor_id'];
-<<<<<<< HEAD
-                    $orderedListingIds[] = $product['product_id'];  
-                    $productData = VendorMobile::with(['brand','model'])->find($product['product_id']);
-=======
                     $orderedListingIds[] = $product['product_id'];
                     $productData = VendorMobile::with(['brand','model'])->find($products['product_id']);
->>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
                     OrderItem::create([
                         'order_id'   => $order->id,
                         'product_id' => $product['product_id'],
@@ -131,11 +122,7 @@ class OnlinePaymentController extends Controller
                         'quantity'   => $product['quantity'] ?? 1,
                         'price'      => $product['price'],
 
-<<<<<<< HEAD
-                        'brand_name'   => $productData->brand->name ?? null,
-=======
                        'brand_name'   => $productData->brand->name ?? null,
->>>>>>> 49c26c2b14dcd0e25df9b1d70301f1607ae728ed
                     'model_name'   => $productData->model->name ?? null,
                     'location'     => $productData->location ?? null,
                     'latitude'     => $productData->latitude ?? null,

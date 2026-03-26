@@ -52,7 +52,7 @@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @foreach ($mobiles as $mobile)
                                             <tr>
 
@@ -179,13 +179,13 @@
                                                  <span class="text-muted">No Build</span>   
                                                 @endif
                                                 </td>
-                                                {{-- <td>
+                                                <td>
                                                 @if($mobile->wireless)
                                                     {{ $mobile->wireless }}
                                                 @else
                                                  <span class="text-muted">No Wireless</span>   
                                                 @endif
-                                                </td> --}}
+                                                </td>
                                                 <td>
                                                 @if($mobile->stock)
                                                     {{ $mobile->stock }}
@@ -241,13 +241,13 @@
                                                         <div class="gap-1"
                                                             style="display: flex; align-items: center; justify-content: center; column-gap: 4px">
 
-                                                            {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('MobileListing') && $sideMenuPermissions['MobileListing']->contains('edit')))
+                                                            @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('MobileListing') && $sideMenuPermissions['MobileListing']->contains('edit')))
                                                         <a href="{{ route('mobile.edit', $mobile->id) }}"
                                                             class="btn btn-primary me-2"
                                                             style="float: left; margin-left: 10px;">
                                                             <i class="fa fa-edit"></i>
                                                         </a>
-                                                    @endif --}}
+                                                    @endif
 
                                                             @if (Auth::guard('admin')->check() ||
                                                                     ($sideMenuPermissions->has('Vendor Mobiles') && $sideMenuPermissions['Customer Mobiles']->contains('delete')))
@@ -270,7 +270,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div> <!-- /.card-body -->
                         </div> <!-- /.card -->
@@ -291,7 +291,45 @@
             if ($.fn.DataTable.isDataTable('#table_id_events')) {
                 $('#table_id_events').DataTable().destroy();
             }
-            $('#table_id_events').DataTable();
+            $('#table_id_events').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('vendor.mobiles.data') }}",
+
+                columns: [
+                    { data: 'DT_RowIndex', orderable: false },
+                    { data: 'created_at' },
+                    { data: 'vendor_info' },
+                    { data: 'brand' },
+                    { data: 'model' },
+                    { data: 'ram' },
+                    { data: 'storage' },
+                    { data: 'price' },
+                    { data: 'condition' },
+                    { data: 'color' },
+                    { data: 'processor' },
+                    { data: 'display' },
+                    { data: 'charging' },
+                    { data: 'refresh_rate' },
+                    { data: 'main_camera' },
+                    { data: 'ultra_camera' },
+                    { data: 'telephoto_camera' },
+                    { data: 'front_camera' },
+                    { data: 'build' },
+                    { data: 'stock' },
+                    { data: 'pta' },
+                    { data: 'ai_features' },
+                    { data: 'battery_health' },
+                    { data: 'os_version' },
+                    { data: 'warranty_start' },
+                    { data: 'warranty_end' },
+                    { data: 'about' },
+                    { data: 'view', orderable: false },
+                    { data: 'actions', orderable: false }
+                ],
+
+                pageLength: 10
+            });
 
             // SweetAlert2 delete confirmation
             $(document).on('click', '.show_confirm', function(event) {

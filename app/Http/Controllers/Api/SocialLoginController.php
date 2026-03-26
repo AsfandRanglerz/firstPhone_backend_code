@@ -91,6 +91,12 @@ class SocialLoginController extends Controller
             $user = User::where('email', $request->email)->first();
         }
         
+        if ($user && isset($user->toggle) && $user->toggle == 0) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Your account has been deactivated.',
+            ], 403);
+        }
 
         $imagePath = null;
         // Image download and save (fixed)

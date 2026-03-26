@@ -38,7 +38,7 @@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @foreach ($mobilerequests as $mobilerequest)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
@@ -132,7 +132,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div> <!-- /.card-body -->
                         </div> <!-- /.card -->
@@ -153,7 +153,32 @@
             if ($.fn.DataTable.isDataTable('#table_id_events')) {
                 $('#table_id_events').DataTable().destroy();
             }
-            $('#table_id_events').DataTable();
+            $('#table_id_events').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('mobilerequest.data') }}",
+
+                columns: [
+                    { data: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'created_at' },
+                    { data: 'customer' },
+                    { data: 'location' },
+                    { data: 'brand' },
+                    { data: 'model' },
+                    { data: 'min_price' },
+                    { data: 'max_price' },
+                    { data: 'ram' },
+                    { data: 'storage' },
+                    { data: 'color' },
+                    { data: 'condition' },
+                    { data: 'description' },
+                    { data: 'vendors', orderable: false, searchable: false },
+                    { data: 'status', orderable: false, searchable: false },
+                    { data: 'actions', orderable: false, searchable: false }
+                ],
+
+                pageLength: 10
+            });
 
             // SweetAlert2 delete confirmation
             $(document).on('click', '.show_confirm', function(event) {

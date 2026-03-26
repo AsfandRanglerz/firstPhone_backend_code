@@ -36,7 +36,7 @@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @foreach ($mobiles as $mobile)
                                             <tr>
 
@@ -117,7 +117,7 @@
                                                     @endphp
 
                                                     @if ($status == 0)
-                                                        {{-- Approved → Disabled Button --}}
+                                                        Approved → Disabled Button
                                                         <button class="btn btn-sm {{ $buttonClass }}" >
                                                             {{ $statusText }}
                                                         </button>
@@ -132,7 +132,7 @@
                                                             <div class="dropdown-menu">
 
                                                                 @if ($status == 1)
-                                                                    {{-- Rejected → Only Approve --}}
+                                                                    Rejected → Only Approve
                                                                     <form method="POST" action="{{ route('mobilelisting.approve', $mobile->id) }}">
                                                                         @csrf
                                                                         <button type="submit" class="dropdown-item text-success">
@@ -141,7 +141,7 @@
                                                                     </form>
 
                                                                 @elseif ($status == 2)
-                                                                    {{-- Pending → Approve + Reject --}}
+                                                                    Pending → Approve + Reject
                                                                     <form method="POST" action="{{ route('mobilelisting.approve', $mobile->id) }}">
                                                                         @csrf
                                                                         <button type="submit" class="dropdown-item text-success">
@@ -173,13 +173,13 @@
                                                         <div class="gap-1"
                                                             style="display: flex; align-items: center; justify-content: center; column-gap: 4px">
 
-                                                            {{-- @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('MobileListing') && $sideMenuPermissions['MobileListing']->contains('edit')))
+                                                            @if (Auth::guard('admin')->check() || ($sideMenuPermissions->has('MobileListing') && $sideMenuPermissions['MobileListing']->contains('edit')))
                                                         <a href="{{ route('mobile.edit', $mobile->id) }}"
                                                             class="btn btn-primary me-2"
                                                             style="float: left; margin-left: 10px;">
                                                             <i class="fa fa-edit"></i>
                                                         </a>
-                                                    @endif --}}
+                                                    @endif
 
                                                             @if (Auth::guard('admin')->check() ||
                                                                     ($sideMenuPermissions->has('Customer Mobiles') && $sideMenuPermissions['Customer Mobiles']->contains('delete')))
@@ -202,7 +202,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div> <!-- /.card-body -->
                         </div> <!-- /.card -->
@@ -223,7 +223,30 @@
             if ($.fn.DataTable.isDataTable('#table_id_events')) {
                 $('#table_id_events').DataTable().destroy();
             }
-            $('#table_id_events').DataTable();
+            $('#table_id_events').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('mobile.listings.data') }}",
+
+                 columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'created_at' },
+                { data: 'customer_info' },
+                { data: 'location' },
+                { data: 'brand' },
+                { data: 'model' },
+                { data: 'ram' },
+                { data: 'storage' },
+                { data: 'price' },
+                { data: 'condition' },
+                { data: 'about' },
+                { data: 'status', orderable: false, searchable: false },
+                { data: 'view', orderable: false, searchable: false },
+                { data: 'actions', orderable: false, searchable: false }
+            ],
+
+                pageLength: 25,
+            });
 
             // SweetAlert2 delete confirmation
             $(document).on('click', '.show_confirm', function(event) {

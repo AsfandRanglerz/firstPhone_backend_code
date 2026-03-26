@@ -2,29 +2,228 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use App\Traits\SendsBulkEmails;
-use App\Models\MobileListing;
-use App\Models\Brand;
-use App\Models\Vendor;
-use App\Models\User;
 use App\Helpers\NotificationHelper;
+use App\Http\Controllers\Controller;
+use App\Mail\NotifyNearByVendorsOfListedMobile;
+use App\Models\Brand;
+use App\Models\MobileListing;
+use App\Models\MobileModel;
 use App\Models\Notification;
 use App\Models\NotificationTarget;
-use App\Models\MobileModel;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\UserRolePermission;
+use App\Models\Vendor;
+use App\Traits\SendsBulkEmails;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\NotifyNearByVendorsOfListedMobile;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class MobileListingController extends Controller
 {
     use SendsBulkEmails;
     public function index()
     {
-        $mobiles = MobileListing::with('model','brand', 'customer')->latest()->get();
-        return view('admin.mobilelisting.index', compact('mobiles'));
+        // $mobiles = MobileListing::with('model','brand', 'customer')->latest()->get();
+        return view('admin.mobilelisting.index');
     }
+
+    public function getMobileListingsData(Request $request)
+{
+    $sideMenuPermissions = collect();
+
+    if (!Auth::guard('admin')->check()) {
+        $user = Auth::guard('subadmin')->user();
+        $roleId = $user->roles->first()->id ?? null;
+
+        $permissions = UserRolePermission::with(['permission', 'sideMenue'])
+            ->where('role_id', $roleId)
+            ->get();
+
+        $sideMenuPermissions = $permissions->groupBy('sideMenue.name')
+            ->map(fn($items) => $items->pluck('permission.name'));
+    }
+
+    $query = MobileListing::with(['model','brand','customer'])
+        ->latest();
+
+    return datatables()->of($query)
+
+        ->addIndexColumn()
+
+        // ✅ Date
+        ->editColumn('created_at', function ($mobile) {
+            return $mobile->created_at
+                ? $mobile->created_at->format('d M Y, h:i A')
+                : '';
+        })
+
+        // ✅ Name + Email + Phone (same as Blade)
+        ->addColumn('customer_info', function ($mobile) {
+            $name = $mobile->customer->name ?? '';
+
+            $email = $mobile->customer
+                ? '<a href="mailto:'.$mobile->customer->email.'">'.$mobile->customer->email.'</a>'
+                : '';
+
+            $phone = $mobile->customer
+                ? '<a href="tel:'.$mobile->customer->phone.'">'.$mobile->customer->phone.'</a>'
+                : '';
+
+            return $name.'<br>'.$email.'<br>'.$phone;
+        })
+
+        // ✅ Location
+        ->addColumn('location', function ($mobile) {
+            return $mobile->location ?? '';
+        })
+
+        // ✅ Brand
+        ->addColumn('brand', function ($mobile) {
+            return $mobile->brand ?? '<span class="text-muted">No Brand</span>';
+        })
+
+        // ✅ Model
+        ->addColumn('model', function ($mobile) {
+            return $mobile->model ?? '<span class="text-muted">No Model</span>';
+        })
+
+        // ✅ RAM
+        ->addColumn('ram', function ($mobile) {
+            return $mobile->ram ?? '<span class="text-muted">No RAM</span>';
+        })
+
+        // ✅ ROM
+        ->addColumn('storage', function ($mobile) {
+            return $mobile->storage ?? '<span class="text-muted">No ROM</span>';
+        })
+
+        // ✅ Price
+        ->addColumn('price', function ($mobile) {
+            return $mobile->price ?? '<span class="text-muted">No Price</span>';
+        })
+
+        // ✅ Condition
+        ->addColumn('condition', function ($mobile) {
+            return $mobile->condition ?? '<span class="text-muted">No Condition</span>';
+        })
+
+        // ✅ About
+        ->addColumn('about', function ($mobile) {
+            return $mobile->about ?? '';
+        })
+
+        // ✅ STATUS (FULL DROPDOWN LIKE BLADE)
+        ->addColumn('status', function ($mobile) use ($sideMenuPermissions) {
+
+            if (
+                Auth::guard('admin')->check() ||
+                ($sideMenuPermissions->has('Customer Mobiles') &&
+                $sideMenuPermissions['Customer Mobiles']->contains('status'))
+            ) {
+
+                $status = (int) $mobile->status;
+
+                $statusText = match ($status) {
+                    0 => 'Approved',
+                    1 => 'Rejected',
+                    2 => 'Pending',
+                    default => 'Unknown',
+                };
+
+                $buttonClass = match ($status) {
+                    0 => 'btn-success',
+                    1 => 'btn-danger',
+                    2 => 'btn-warning',
+                    default => 'btn-secondary',
+                };
+
+                // Approved → no dropdown
+                if ($status == 0) {
+                    return '<button class="btn btn-sm '.$buttonClass.'">'.$statusText.'</button>';
+                }
+
+                // Dropdown
+                $html = '<div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle '.$buttonClass.'" data-toggle="dropdown">
+                        '.$statusText.'
+                    </button>
+                    <div class="dropdown-menu">';
+
+                if ($status == 1) {
+                    // Rejected → Approve only
+                    $html .= '
+                    <form method="POST" action="'.route('mobilelisting.approve', $mobile->id).'">
+                        '.csrf_field().'
+                        <button type="submit" class="dropdown-item text-success">Approve</button>
+                    </form>';
+                }
+
+                if ($status == 2) {
+                    // Pending → Approve + Reject
+                    $html .= '
+                    <form method="POST" action="'.route('mobilelisting.approve', $mobile->id).'">
+                        '.csrf_field().'
+                        <button type="submit" class="dropdown-item text-success">Approve</button>
+                    </form>
+
+                    <form method="POST" action="'.route('mobilelisting.reject', $mobile->id).'">
+                        '.csrf_field().'
+                        <button type="submit" class="dropdown-item text-danger">Reject</button>
+                    </form>';
+                }
+
+                $html .= '</div></div>';
+
+                return $html;
+            }
+
+            return '';
+        })
+
+        // ✅ VIEW BUTTON
+        ->addColumn('view', function ($mobile) {
+            return '<a class="btn btn-primary"
+                        href="'.route('mobile.show', $mobile->id).'">View</a>';
+        })
+
+        // ✅ ACTIONS (DELETE)
+        ->addColumn('actions', function ($mobile) use ($sideMenuPermissions) {
+
+            $buttons = '<div class="d-flex">';
+
+            if (
+                Auth::guard('admin')->check() ||
+                ($sideMenuPermissions->has('Customer Mobiles') &&
+                $sideMenuPermissions['Customer Mobiles']->contains('delete'))
+            ) {
+                $buttons .= '
+                <form id="delete-form-'.$mobile->id.'" 
+                    action="'.route('mobile.delete',$mobile->id).'" 
+                    method="POST">
+                    '.csrf_field().'
+                    '.method_field('DELETE').'
+                </form>
+
+                <button class="show_confirm btn" 
+                    style="background-color: #009245;"
+                    data-form="delete-form-'.$mobile->id.'" 
+                    type="button">
+                    <i class="fa fa-trash"></i>
+                </button>';
+            }
+
+            $buttons .= '</div>';
+
+            return $buttons;
+        })
+
+        ->rawColumns([
+            'customer_info','brand','model','ram','storage',
+            'price','condition','status','view','actions'
+        ])
+
+        ->make(true);
+}
 
    public function show($id)
 {
