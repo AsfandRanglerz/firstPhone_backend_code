@@ -756,7 +756,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                  $notification = Notification::create([
                             'user_type' => 'customers',
                             'title' => "Order Shipped",
-                            'description' => "Your order #{$order->order_number} has been dispatched.",
+                            'description' => "Your order #{$order->order_number} has been shipped.",
                         ]);
                         NotificationTarget::create([
                             'notification_id' => $notification->id,
@@ -769,7 +769,7 @@ public function getVendorOrderDetails(int $vendorId, int $orderId): array
                     NotificationHelper::sendFcmNotification(
                         $order->customer->fcm_token,
                         "Order Shipped",
-                        "Your order #{$order->order_number} has been dispatched.",
+                        "Your order #{$order->order_number} has been shipped.",
                         [
                             'type' => 'order_shipped',
                             'order_id' => (string) $order->id,

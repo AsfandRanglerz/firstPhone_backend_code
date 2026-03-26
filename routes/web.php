@@ -157,6 +157,8 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::delete('/mobilelisting-destroy/{id}', 'delete')->name('mobile.delete')->middleware('check.permission:Customer Mobiles,delete');
         Route::post('/mobilelistingActivate/{id}', 'active')->name('mobile.activate');
         Route::post('/mobilelistingDeactivate/{id}', 'deactive')->name('mobile.deactivate');
+
+        Route::get('/mobile-listings-data',  'getMobileListingsData')->name('mobile.listings.data')->middleware('check.permission:Customer Mobiles,view');
     });
 
     // ############ Vendor Mobile Listings #################
@@ -164,6 +166,8 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::get('/listingvendor', 'index')->name('vendormobile.index')->middleware('check.permission:Vendor Mobiles,view');
         Route::get('/listingvendor-show/{id}', 'show')->name('vendormobile.show');
         Route::delete('/listingvendor-destroy/{id}', 'delete')->name('vendormobile.delete')->middleware('check.permission:Vendor Mobiles,delete');
+
+        Route::get('/vendor-mobiles-data', 'getVendorMobileData')->name('vendor.mobiles.data')->middleware('check.permission:Vendor Mobiles,view');
     });
 
     // ############ Mobile Requests #################
@@ -173,6 +177,8 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         Route::get('/mobilerequest-show/{id}', 'show')->name('mobilerequest.show');
         Route::delete('/mobilerequest-destroy/{id}', 'delete')->name('mobilerequest.delete')->middleware('check.permission:Mobile Requests,delete');
         Route::patch('/mark-as-read/{id}',  'markAsRead')->name('mobilerequest.markAsRead');
+
+        Route::get('/mobilerequest-data', 'getMobileRequestsData')->name('mobilerequest.data')->middleware('check.permission:Mobile Requests,view');
     });
 
     // ############ Sub Admin #################
@@ -204,6 +210,10 @@ Route::prefix('admin')->middleware(['admin', 'check.subadmin.status'])->group(fu
         // routes/web.php
         Route::get('cancel-orders/check-delivery-status/{id}', 'checkDeliveryStatus')->name('cancel-orders.checkDeliveryStatus');
         Route::post('cancel-orders/update-status/{id}', 'updateCancelStatus')->name('cancel-orders.updateStatus');
+
+        Route::get('/orders-data', 'getOrdersData')->name('orders.data')->middleware('check.permission:Orders,view');
+
+        Route::get('/cancel-orders-data',  'getCancelOrdersData')->name('cancel.orders.data')->middleware('check.permission:Cancel Orders,view');
     });
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

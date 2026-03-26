@@ -444,45 +444,138 @@ class OrderController extends Controller
         ->make(true);
 }
 
+    // public function updateCancelStatus(Request $request, $id)
+    // {
+    //     $cancelOrder = CancelOrder::findOrFail($id);
+
+    //     if ($request->hasFile('proof_file_image')) {
+    //         $file = $request->file('proof_file_image');
+    //         $filename = time() . '_' . $file->getClientOriginalName();
+    //         $file->move(public_path('uploads/cancel_proofs'), $filename);
+    //         $cancelOrder->proof_file_image = 'uploads/cancel_proofs/' . $filename;
+    //     }
+
+    //     $cancelOrder->status = $request->status;
+    //     $cancelOrder->save();
+
+    //     if ($request->status === 'approved') {
+    //     $order = Order::findOrFail($cancelOrder->order_id);
+    //     $order->order_status = 'cancelled';
+    //     $order->save();
+
+    //     }  
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Cancel order status updated successfully'
+    //     ]);
+    // }
+
+    // public function checkDeliveryStatus($id)
+    // {
+    //     // $cancelOrder = CancelOrder::with('order')->findOrFail($id);
+    //     $cancelOrder = CancelOrder::with([
+    //         'order.customer',
+    //         'order.items.vendor'
+    //     ])->findOrFail($id);
+
+    //     if ($cancelOrder->order->delivery_method === 'online') {
+
+    //         $order = $cancelOrder->order;
+  
+    //         $notifications = [
+    //             [
+    //                 'user_type' => 'vendors',
+    //                 'targetable_id' => $order->items->first()->vendor->id ?? null,
+    //                 'targetable_type' => 'App\Models\Vendor',
+    //                 'token' => $order->items->first()->vendor->fcm_token ?? null,
+    //                 'title' => "Order Cancellation Approved",
+    //                 'message' => "Your cancellation request for order #{$order->order_number} has been approved."
+    //             ],
+    //             [
+    //                 'user_type' => 'customers',
+    //                 'targetable_id' => $order->customer->id ?? null,
+    //                 'targetable_type' => 'App\Models\User',
+    //                 'token' => $order->customer->fcm_token ?? null,
+    //                 'title' => "Order Cancelled",
+    //                 'message' => "Your order #{$order->order_number} has been cancelled."
+    //             ]
+    //         ];
+    //         foreach ($notifications as $notify) {
+    //             $notification = Notification::create([
+    //                 'user_type' => $notify['user_type'] ?? null,
+    //                 'title' => $notify['title'] ?? null,
+    //                 'description' => $notify['message'] ?? null,
+    //             ]);
+    //             NotificationTarget::create([
+    //                 'notification_id' => $notification->id,
+    //                 'targetable_id' => $notify['targetable_id'] ?? null,
+    //                 'targetable_type' => $notify['targetable_type'] ?? null,
+    //                 'type' => 'order_cancellation',
+    //             ]);
+
+    //             if (!empty($notify['token'])) { // null token se bachne ke liye
+    //                 NotificationHelper::sendFcmNotification(
+    //                     $notify['token'],
+    //                     "Order Cancelled",
+    //                     $notify['message'],
+    //                     [
+    //                         'type' => 'order_cancellation',
+    //                         'order_id' => (string) $cancelOrder->order_id,
+    //                     ]
+    //                 );
+    //             }
+    //         }
+    //         return [$notifications, $order];
+
+    //         return response()->json([
+    //             'delivery_method' => 'online'
+    //         ]);
+    //     }
+
+    //     $cancelOrder->status = 'approved';
+    //     $cancelOrder->save();
+
+    //     return response()->json([
+    //         'delivery_method' => 'approved_direct'
+    //     ]);
+    // }
+
     public function updateCancelStatus(Request $request, $id)
-    {
-        $cancelOrder = CancelOrder::findOrFail($id);
+{
+    $cancelOrder = CancelOrder::with([
+        'order.customer',
+        'order.items.vendor'
+    ])->findOrFail($id);
 
-        if ($request->hasFile('proof_file_image')) {
-            $file = $request->file('proof_file_image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/cancel_proofs'), $filename);
-            $cancelOrder->proof_file_image = 'uploads/cancel_proofs/' . $filename;
-        }
+    $order = $cancelOrder->order;
 
-        $cancelOrder->status = $request->status;
-        $cancelOrder->save();
-
-        if ($request->status === 'approved') {
-        $order = Order::findOrFail($cancelOrder->order_id);
-        $order->order_status = 'cancelled';
-        $order->save();
-
-        }  
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Cancel order status updated successfully'
-        ]);
+    // Upload file (for approve case)
+    if ($request->hasFile('proof_file_image')) {
+        $file = $request->file('proof_file_image');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('uploads/cancel_proofs'), $filename);
+        $cancelOrder->proof_file_image = 'uploads/cancel_proofs/' . $filename;
     }
 
-    public function checkDeliveryStatus($id)
-    {
-        // $cancelOrder = CancelOrder::with('order')->findOrFail($id);
-        $cancelOrder = CancelOrder::with([
-            'order.customer',
-            'order.items.vendor'
-        ])->findOrFail($id);
+    // ✅ UPDATE STATUS HERE
+    $cancelOrder->status = $request->status;
+    $cancelOrder->save();
 
-        if ($cancelOrder->order->delivery_method === 'online') {
+    /*
+    |-----------------------------------------
+    | SEND NOTIFICATIONS
+    |-----------------------------------------
+    */
 
-            $order = $cancelOrder->order;
-  
+    if ($order->delivery_method === 'online') {
+
+        // ================= APPROVED =================
+        if ($request->status === 'approved') {
+
+            $order->order_status = 'cancelled';
+            $order->save();
+
             $notifications = [
                 [
                     'user_type' => 'vendors',
@@ -501,45 +594,83 @@ class OrderController extends Controller
                     'message' => "Your order #{$order->order_number} has been cancelled."
                 ]
             ];
-            // foreach ($notifications as $notify) {
-            //     $notification = Notification::create([
-            //         'user_type' => $notify['user_type'] ?? null,
-            //         'title' => $notify['title'] ?? null,
-            //         'description' => $notify['message'] ?? null,
-            //     ]);
-            //     NotificationTarget::create([
-            //         'notification_id' => $notification->id,
-            //         'targetable_id' => $notify['targetable_id'] ?? null,
-            //         'targetable_type' => $notify['targetable_type'] ?? null,
-            //         'type' => 'order_cancellation',
-            //     ]);
 
-            //     if (!empty($notify['token'])) { // null token se bachne ke liye
-            //         NotificationHelper::sendFcmNotification(
-            //             $notify['token'],
-            //             "Order Cancelled",
-            //             $notify['message'],
-            //             [
-            //                 'type' => 'order_cancellation',
-            //                 'order_id' => (string) $cancelOrder->order_id,
-            //             ]
-            //         );
-            //     }
-            // }
-            // return [$notifications, $order];
-
-            return response()->json([
-                'delivery_method' => 'online'
-            ]);
         }
 
-        $cancelOrder->status = 'approved';
-        $cancelOrder->save();
+        // ================= REJECTED =================
+        elseif ($request->status === 'rejected') {
 
+            $notifications = [
+                [
+                    'user_type' => 'vendors',
+                    'targetable_id' => $order->items->first()->vendor->id ?? null,
+                    'targetable_type' => 'App\Models\Vendor',
+                    'token' => $order->items->first()->vendor->fcm_token ?? null,
+                    'title' => "Cancellation Rejected",
+                    'message' => "Cancellation request for order #{$order->order_number} has been rejected."
+                ],
+                [
+                    'user_type' => 'customers',
+                    'targetable_id' => $order->customer->id ?? null,
+                    'targetable_type' => 'App\Models\User',
+                    'token' => $order->customer->fcm_token ?? null,
+                    'title' => "Cancellation Rejected",
+                    'message' => "Your cancellation request for order #{$order->order_number} was rejected."
+                ]
+            ];
+        }
+
+        // 🔁 SEND LOOP (common)
+        if (!empty($notifications)) {
+            foreach ($notifications as $notify) {
+
+                $notification = Notification::create([
+                    'user_type' => $notify['user_type'],
+                    'title' => $notify['title'],
+                    'description' => $notify['message'],
+                ]);
+
+                NotificationTarget::create([
+                    'notification_id' => $notification->id,
+                    'targetable_id' => $notify['targetable_id'],
+                    'targetable_type' => $notify['targetable_type'],
+                    'type' => 'order_cancellation',
+                ]);
+
+                if (!empty($notify['token'])) {
+                    NotificationHelper::sendFcmNotification(
+                        $notify['token'],
+                        $notify['title'],
+                        $notify['message'],
+                        [
+                            'type' => 'order_cancellation',
+                            'order_id' => (string) $cancelOrder->order_id,
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
+    return response()->json([
+        'success' => true
+    ]);
+}
+
+   public function checkDeliveryStatus($id)
+{
+    $cancelOrder = CancelOrder::with('order')->findOrFail($id);
+
+    if ($cancelOrder->order->delivery_method === 'online') {
         return response()->json([
-            'delivery_method' => 'approved_direct'
+            'delivery_method' => 'online'
         ]);
     }
+
+    return response()->json([
+        'delivery_method' => 'approved_direct'
+    ]);
+}
 
 
     public function pendingCancelOrderCounter()
