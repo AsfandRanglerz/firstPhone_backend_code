@@ -180,6 +180,43 @@ class OrderController extends Controller
                 '</span>';
         })
 
+                ->filterColumn('order_number', fn($query, $keyword) => $query->where('order_number','like',"%{$keyword}%"))
+                 ->filterColumn('created_at', function($query, $keyword) {
+                    $query->whereRaw(
+                        "DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?",
+                        ["%{$keyword}%"]
+                    );
+                })
+                ->filterColumn('customer', function($query, $keyword) {
+                    $query->whereHas('customer', fn($q) => $q->where('name','like',"%{$keyword}%")
+                                                        ->orWhere('email','like',"%{$keyword}%")
+                                                        ->orWhere('phone','like',"%{$keyword}%"));
+                })
+                ->filterColumn('vendor', function($query, $keyword) {
+                    $query->whereHas('items.vendor', fn($q) => $q->where('name','like',"%{$keyword}%")
+                                                                ->orWhere('email','like',"%{$keyword}%")
+                                                                ->orWhere('phone','like',"%{$keyword}%"));
+                })
+               ->filterColumn('products', function($query, $keyword) {
+                $query->whereHas('items.product', function($q) use ($keyword) {
+                    $q->where(function($q2) use ($keyword) {
+                        $q2->whereHas('brand', fn($b) => $b->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('model', fn($m) => $m->where('name', 'like', "%{$keyword}%"));
+                    });
+                });
+            })
+                ->filterColumn('total_price', fn($query, $keyword) => $query->whereHas('items', fn($q) => $q->whereRaw('price * quantity like ?', ["%{$keyword}%"])))
+                ->filterColumn('shipping', fn($query, $keyword) => $query->where('shipping_charges','like',"%{$keyword}%"))
+                ->filterColumn('payment_status', function($query, $keyword) {
+                    $query->where('payment_status', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('delivery_method', function($query, $keyword) {
+                    $query->where('delivery_method', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('order_status', function($query, $keyword) {
+                    $query->where('order_status', 'like', "%{$keyword}%");
+                })
+
         ->rawColumns([
             'customer','vendor','products',
             'shipping','payment_status',
@@ -436,6 +473,31 @@ class OrderController extends Controller
 
             return $btn;
         })
+
+        ->filterColumn('created_at', function($query, $keyword) {
+        $query->whereRaw("DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('order_id', fn($query, $keyword) =>
+                $query->whereHas('order', fn($q) => $q->where('order_number', 'like', "%{$keyword}%"))
+            )
+            ->filterColumn('order_item', fn($query, $keyword) =>
+                $query->whereHas('orderItem.product', fn($q) => 
+                    $q->whereHas('brand', fn($b) => $b->where('name', 'like', "%{$keyword}%"))
+                    ->orWhereHas('model', fn($m) => $m->where('name', 'like', "%{$keyword}%"))
+                )
+            )
+            ->filterColumn('vendor', fn($query, $keyword) =>
+                $query->whereHas('orderItem.vendor', fn($q) =>
+                    $q->where('name', 'like', "%{$keyword}%")
+                )
+            )
+            ->filterColumn('reason', fn($query, $keyword) =>
+                $query->where('reason', 'like', "%{$keyword}%")
+            )
+
+            ->filterColumn('status', fn($query, $keyword) =>
+                $query->where('status', 'like', "%{$keyword}%")
+            )
 
         ->rawColumns([
             'delivery_method','proof','status','action'

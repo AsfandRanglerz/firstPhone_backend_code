@@ -38,6 +38,135 @@ class VendorMobileListingController extends Controller
 
         ->addIndexColumn()
 
+            ->filterColumn('vendor_info', function($query, $keyword) {
+        $query->whereHas('vendor', function($q) use ($keyword) {
+            $q->where('name', 'like', "%{$keyword}%")
+            ->orWhere('email', 'like', "%{$keyword}%")
+            ->orWhere('phone', 'like', "%{$keyword}%");
+        });
+    })
+
+    ->filterColumn('brand', function($query, $keyword) {
+    $query->whereHas('brand', function($q) use ($keyword) {
+        $q->where('name', 'like', "%{$keyword}%");
+    });
+})
+
+        ->filterColumn('model', function($query, $keyword) {
+    $query->whereHas('model', function($q) use ($keyword) {
+        $q->where('name', 'like', "%{$keyword}%");
+    });
+})
+
+        ->filterColumn('created_at', function($query, $keyword) {
+        $query->whereRaw(
+            "DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?",
+            ["%{$keyword}%"]
+        );
+    })
+
+    ->filterColumn('ram', function($query, $keyword) {
+        $query->where('ram', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('storage', function($query, $keyword) {
+        $query->where('storage', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('price', function($query, $keyword) {
+        $query->where('price', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('condition', function($query, $keyword) {
+        $query->where('condition', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('color', function($query, $keyword) {
+        $query->where('color', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('processor', function($query, $keyword) {
+        $query->where('processor', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('display', function($query, $keyword) {
+        $query->where('display', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('charging', function($query, $keyword) {
+        $query->where('charging', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('refresh_rate', function($query, $keyword) {
+        $query->where('refresh_rate', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('main_camera', function($query, $keyword) {
+        $query->where('main_camera', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('main_camera', function($query, $keyword) {
+        $query->where('main_camera', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('ultra_camera', function($query, $keyword) {
+        $query->where('ultra_camera', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('telephoto_camera', function($query, $keyword) {
+        $query->where('telephoto_camera', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('front_camera', function($query, $keyword) {
+        $query->where('front_camera', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('build', function($query, $keyword) {
+        $query->where('build', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('stock', function($query, $keyword) {
+        $query->where('stock', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('ai_features', function($query, $keyword) {
+        $query->where('ai_features', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('battery_health', function($query, $keyword) {
+        $query->where('battery_health', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('os_version', function($query, $keyword) {
+        $query->where('os_version', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('warranty_start', function($query, $keyword) {
+        $query->where('warranty_start', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('warranty_end', function($query, $keyword) {
+        $query->where('warranty_end', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('about', function($query, $keyword) {
+        $query->where('about', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('pta_approved', function($query, $keyword) {
+    $keyword = strtolower($keyword);
+
+    $query->where(function($q) use ($keyword) {
+        if (str_contains($keyword, 'approved')) {
+            $q->orWhere('pta_approved', 0);
+        }
+        if (str_contains($keyword, 'not')) {
+            $q->orWhere('pta_approved', 1);
+        }
+    });
+})
+    
+
         ->editColumn('created_at', fn($m) => $m->created_at?->format('d M Y, h:i A'))
 
         // ✅ Vendor Info (Name + Email + Phone)

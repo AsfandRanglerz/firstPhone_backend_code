@@ -229,23 +229,36 @@
                 ajax: "{{ route('mobile.listings.data') }}",
 
                  columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'created_at' },
-                { data: 'customer_info' },
-                { data: 'location' },
-                { data: 'brand' },
-                { data: 'model' },
-                { data: 'ram' },
-                { data: 'storage' },
-                { data: 'price' },
-                { data: 'condition' },
-                { data: 'about' },
-                { data: 'status', orderable: false, searchable: false },
-                { data: 'view', orderable: false, searchable: false },
-                { data: 'actions', orderable: false, searchable: false }
+                { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false },
+
+                { data: 'created_at', name: 'created_at' },
+
+                { data: 'customer_info', name: 'customer_info' },
+
+                { data: 'location', name: 'location' },
+
+                { data: 'brand', name: 'brand' },
+
+                { data: 'model', name: 'model' },
+
+                { data: 'ram', name: 'ram' },
+
+                { data: 'storage', name: 'storage' },
+
+                { data: 'price', name: 'price' },
+
+                { data: 'condition', name: 'condition' },
+
+                { data: 'about', name: 'about' },
+
+                { data: 'status', name: 'status' },
+
+                { data: 'view', name: 'view', orderable: false, searchable: false },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
 
-                pageLength: 25,
+                pageLength: 10,
             });
 
             // SweetAlert2 delete confirmation

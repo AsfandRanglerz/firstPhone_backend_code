@@ -50,6 +50,74 @@ class MobileListingController extends Controller
 
         ->addIndexColumn()
 
+        ->filterColumn('customer_info', function($query, $keyword) {
+        $query->whereHas('customer', function($q) use ($keyword) {
+            $q->where('name', 'like', "%{$keyword}%")
+            ->orWhere('email', 'like', "%{$keyword}%")
+            ->orWhere('phone', 'like', "%{$keyword}%");
+        });
+    })
+
+        ->filterColumn('created_at', function($query, $keyword) {
+        $query->whereRaw(
+            "DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?",
+            ["%{$keyword}%"]
+        );
+    })
+
+        ->filterColumn('brand', function($query, $keyword) {
+        $query->where('brand', 'like', "%{$keyword}%"); 
+    })
+
+        ->filterColumn('model', function($query, $keyword) {
+        $query->where('model', 'like', "%{$keyword}%"); 
+    })
+
+        ->filterColumn('ram', function($query, $keyword) {
+        $query->where('ram', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('storage', function($query, $keyword) {
+        $query->where('storage', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('condition', function($query, $keyword) {
+        $query->where('condition', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('location', function($query, $keyword) {
+        $query->where('location', 'like', "%{$keyword}%");
+    })
+
+     ->filterColumn('price', function($query, $keyword) {
+        $query->where('price', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('about', function($query, $keyword) {
+        $query->where('about', 'like', "%{$keyword}%");
+    })
+
+    ->filterColumn('status', function($query, $keyword) {
+
+    $keyword = strtolower($keyword);
+
+    $query->where(function($q) use ($keyword) {
+
+        if (str_contains($keyword, 'approved')) {
+            $q->orWhere('status', 0);
+        }
+
+        if (str_contains($keyword, 'rejected')) {
+            $q->orWhere('status', 1);
+        }
+
+        if (str_contains($keyword, 'pending')) {
+            $q->orWhere('status', 2);
+        }
+
+    });
+})
+
         // ✅ Date
         ->editColumn('created_at', function ($mobile) {
             return $mobile->created_at

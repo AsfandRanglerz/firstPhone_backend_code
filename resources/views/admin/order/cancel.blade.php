@@ -218,14 +218,14 @@
 
                 columns: [
                     { data: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'created_at' },
-                    { data: 'order_id' },
-                    { data: 'order_item' },
-                    { data: 'vendor' },
-                    { data: 'reason' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'order_id', name: 'order.order_number' },
+                    { data: 'order_item', name: '' }, 
+                    { data: 'vendor', name: 'orderItem.vendor.name' },
+                    { data: 'reason', name: 'reason' },
                     { data: 'delivery_method', orderable: false, searchable: false },
                     { data: 'proof', orderable: false, searchable: false },
-                    { data: 'status', orderable: false, searchable: false },
+                    { data: 'status', name:'status'},
                     { data: 'action', orderable: false, searchable: false }
                 ],
 

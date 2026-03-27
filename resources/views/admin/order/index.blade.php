@@ -240,19 +240,19 @@ button.bg-warning:hover{
                     serverSide: true,
                     ajax: "{{ route('orders.data') }}",
 
-                    columns: [
-                        { data: 'DT_RowIndex', orderable: false, searchable: false },
-                        { data: 'order_number' },
-                        { data: 'created_at' },
-                        { data: 'customer' },
-                        { data: 'vendor' },
-                        { data: 'products' },
-                        { data: 'total_price' },
-                        { data: 'shipping' },
-                        { data: 'payment_status', orderable: false, searchable: false },
-                        { data: 'delivery_method', orderable: false, searchable: false },
-                        { data: 'order_status', orderable: false, searchable: false }
-                    ],
+                   columns: [
+                    { data: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'order_number', name: 'order_number' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'customer', name: 'customer.name' },
+                    { data: 'vendor', name: 'items.vendor.name' },
+                    { data: 'products', name: '' }, 
+                    { data: 'total_price', name: 'items.price' },
+                    { data: 'shipping', name: 'shipping_charges' },
+                    { data: 'payment_status', name: 'payment_status' },
+                    { data: 'delivery_method', name: 'delivery_method' },
+                    { data: 'order_status', name: 'order_status' }
+                ],
 
                     pageLength: 10
                 });

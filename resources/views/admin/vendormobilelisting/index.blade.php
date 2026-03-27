@@ -297,35 +297,47 @@
                 ajax: "{{ route('vendor.mobiles.data') }}",
 
                 columns: [
-                    { data: 'DT_RowIndex', orderable: false },
-                    { data: 'created_at' },
-                    { data: 'vendor_info' },
-                    { data: 'brand' },
-                    { data: 'model' },
-                    { data: 'ram' },
-                    { data: 'storage' },
-                    { data: 'price' },
-                    { data: 'condition' },
-                    { data: 'color' },
-                    { data: 'processor' },
-                    { data: 'display' },
-                    { data: 'charging' },
-                    { data: 'refresh_rate' },
-                    { data: 'main_camera' },
-                    { data: 'ultra_camera' },
-                    { data: 'telephoto_camera' },
-                    { data: 'front_camera' },
-                    { data: 'build' },
-                    { data: 'stock' },
-                    { data: 'pta' },
-                    { data: 'ai_features' },
-                    { data: 'battery_health' },
-                    { data: 'os_version' },
-                    { data: 'warranty_start' },
-                    { data: 'warranty_end' },
-                    { data: 'about' },
-                    { data: 'view', orderable: false },
-                    { data: 'actions', orderable: false }
+                    { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false },
+
+                    { data: 'created_at', name: 'created_at' },
+
+                    { data: 'vendor_info', name: 'vendor_info' },
+
+                    { data: 'brand', name: 'brand.name' },
+                    { data: 'model', name: 'model.name' },
+
+                    { data: 'ram', name: 'ram' },
+                    { data: 'storage', name: 'storage' },
+                    { data: 'price', name: 'price' },
+                    { data: 'condition', name: 'condition' },
+
+                    { data: 'color', name: 'color' },
+                    { data: 'processor', name: 'processor' },
+                    { data: 'display', name: 'display' },
+                    { data: 'charging', name: 'charging' },
+                    { data: 'refresh_rate', name: 'refresh_rate' },
+
+                    { data: 'main_camera', name: 'main_camera' },
+                    { data: 'ultra_camera', name: 'ultra_camera' },
+                    { data: 'telephoto_camera', name: 'telephoto_camera' },
+                    { data: 'front_camera', name: 'front_camera' },
+
+                    { data: 'build', name: 'build' },
+                    { data: 'stock', name: 'stock' },
+
+                    { data: 'pta', name: 'pta_approved', searchable: true },
+
+                    { data: 'ai_features', name: 'ai_features' },
+                    { data: 'battery_health', name: 'battery_health' },
+                    { data: 'os_version', name: 'os_version' },
+
+                    { data: 'warranty_start', name: 'warranty_start' },
+                    { data: 'warranty_end', name: 'warranty_end' },
+
+                    { data: 'about', name: 'about' },
+
+                    { data: 'view', name: 'view', orderable: false, searchable: false },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
 
                 pageLength: 10

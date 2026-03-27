@@ -153,6 +153,40 @@ class MobileRequestController extends Controller
             return $buttons;
         })
 
+         ->filterColumn('created_at', function($query, $keyword) {
+        $query->whereRaw(
+            "DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?",
+            ["%{$keyword}%"]
+        );
+    })
+        ->filterColumn('customer', fn($query, $keyword) => 
+            $query->whereHas('customer', fn($q) => $q->where('name', 'like', "%{$keyword}%")
+                ->orWhere('email', 'like', "%{$keyword}%")
+                ->orWhere('phone', 'like', "%{$keyword}%"))
+        )
+        ->filterColumn('location', fn($query, $keyword) => $query->where('location', 'like', "%{$keyword}%"))
+        ->filterColumn('brand', fn($query, $keyword) => $query->whereHas('brand', fn($q) => $q->where('name', 'like', "%{$keyword}%")))
+        ->filterColumn('model', fn($query, $keyword) => $query->whereHas('model', fn($q) => $q->where('name', 'like', "%{$keyword}%")))
+        ->filterColumn('min_price', fn($query, $keyword) => $query->where('min_price', 'like', "%{$keyword}%"))
+        ->filterColumn('max_price', fn($query, $keyword) => $query->where('max_price', 'like', "%{$keyword}%"))
+        ->filterColumn('ram', fn($query, $keyword) => $query->where('ram', 'like', "%{$keyword}%"))
+        ->filterColumn('storage', fn($query, $keyword) => $query->where('storage', 'like', "%{$keyword}%"))
+        ->filterColumn('color', fn($query, $keyword) => $query->where('color', 'like', "%{$keyword}%"))
+        ->filterColumn('condition', fn($query, $keyword) => $query->where('condition', 'like', "%{$keyword}%"))
+        ->filterColumn('description', fn($query, $keyword) => $query->where('description', 'like', "%{$keyword}%"))
+      ->filterColumn('status', function($query, $keyword) {
+    $keyword = strtolower(trim($keyword));
+
+    $query->where(function($q) use ($keyword) {
+        if (strpos($keyword, 'seen') !== false && strpos($keyword, 'unseen') === false) {
+            // Only "Seen"
+            $q->where('status', 0);
+        } elseif (strpos($keyword, 'unseen') !== false) {
+            $q->where('status', 2);
+        }
+    });
+})
+
         ->rawColumns([
             'customer','min_price','max_price','description',
             'vendors','status','actions'
