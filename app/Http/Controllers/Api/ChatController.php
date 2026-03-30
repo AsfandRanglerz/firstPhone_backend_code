@@ -20,14 +20,9 @@ class ChatController extends Controller
         ]
         );
 
-        $uploadedImages = [];
+         $uploadedImages = [];
 
         $files = $request->file('image');
-
-        // convert single image to array
-        if (!is_array($files)) {
-            $files = [$files];
-        }
 
         foreach ($files as $file) {
 
@@ -37,7 +32,7 @@ class ChatController extends Controller
 
             $imagePath = 'public/admin/assets/chatimages/' . $filename;
 
-             $chat = Chat::create([
+            Chat::create([
                 'image' => $imagePath
             ]);
 

@@ -67,8 +67,7 @@ Route::post('/seo-bulk', [SeoController::class, 'storeBulk'])
 Route::post('/chat-images', [ChatController::class, 'chatImages']);
 
 Route::get('/vendors', [HomeController::class, 'allVendors']);
-//Chat Images API
-Route::post('/chat-images', [ChatController::class, 'chatImages']);
+
 // Auth APIs
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
