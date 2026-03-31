@@ -80,7 +80,7 @@
                                                             </a>
                                                         @endif
 
-                                                        @if (Auth::guard('admin')->check() ||
+                                                        {{-- @if (Auth::guard('admin')->check() ||
                                                                 ($sideMenuPermissions->has('Sub Admins') && $sideMenuPermissions['Sub Admins']->contains('delete')))
                                                             <form id="delete-form-{{ $subAdmin->id }}"
                                                                 action="{{ route('subadmin.destroy', $subAdmin->id) }}"
@@ -94,7 +94,7 @@
                                                                 data-form="delete-form-{{ $subAdmin->id }}" type="button">
                                                                 <span><i class="fa fa-trash"></i></span>
                                                             </button>
-                                                        @endif
+                                                        @endif --}}
                                                     </div>
                                                 </td>
                                             </tr>

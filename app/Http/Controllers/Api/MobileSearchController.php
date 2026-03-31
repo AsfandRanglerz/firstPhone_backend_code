@@ -94,7 +94,7 @@ class MobileSearchController extends Controller
                     'brand_id'      => $m->brand_id,
                     'brand'         => $m->brand?->name,
                     'price'         => $m->price,
-                    'image'         => isset($images[0]) ? asset($images[0]) : null,
+                    'image'         => isset($images[0]) ? $images[0] : null,
 
                     'vendor'       => $m->vendor?->name,
                     'repair_service'    => $m->vendor?->repair_service,

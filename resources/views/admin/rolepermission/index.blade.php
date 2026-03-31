@@ -26,7 +26,7 @@
                                                 <th>Name</th>
                                                 {{-- <th>Status</th> --}}
                                                 <th>Permissions</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -62,7 +62,7 @@
                                                                 @method('DELETE') <!-- Spoof DELETE method -->
                                                             </form>
 
-                                                            @if(!$roleUsed)
+                                                            {{-- @if(!$roleUsed)
                                                             <!-- Delete Button -->
                                                             <button class="show_confirm btn d-flex gap-4"
                                                                 style="background-color: #009245;"
@@ -79,7 +79,7 @@
                                                             <i class="fa fa-trash"></i>
                                                             </button>
 
-                                                            @endif
+                                                            @endif --}}
 
                                                         @endif
                                                     </td>

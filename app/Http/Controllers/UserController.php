@@ -116,26 +116,26 @@ if (!Auth::guard('admin')->check()) {
     }
 
     // ✅ DELETE BUTTON
-    if (
-        Auth::guard('admin')->check() ||
-        ($sideMenuPermissions->has('Customers') &&
-        $sideMenuPermissions['Customers']->contains('delete'))
-    ) {
-        $buttons .= '
-        <form id="delete-form-'.$user->id.'" 
-            action="'.route('user.delete',$user->id).'" 
-            method="POST" style="display:inline;">
-            '.csrf_field().'
-            '.method_field('DELETE').'
-        </form>
+    // if (
+    //     Auth::guard('admin')->check() ||
+    //     ($sideMenuPermissions->has('Customers') &&
+    //     $sideMenuPermissions['Customers']->contains('delete'))
+    // ) {
+    //     $buttons .= '
+    //     <form id="delete-form-'.$user->id.'" 
+    //         action="'.route('user.delete',$user->id).'" 
+    //         method="POST" style="display:inline;">
+    //         '.csrf_field().'
+    //         '.method_field('DELETE').'
+    //     </form>
 
-        <button class="show_confirm btn" 
-            style="background-color: #009245;"
-            data-form="delete-form-'.$user->id.'" 
-            type="button">
-            <i class="fa fa-trash"></i>
-        </button>';
-    }
+    //     <button class="show_confirm btn" 
+    //         style="background-color: #009245;"
+    //         data-form="delete-form-'.$user->id.'" 
+    //         type="button">
+    //         <i class="fa fa-trash"></i>
+    //     </button>';
+    // }
 
     $buttons .= '</div>';
 
