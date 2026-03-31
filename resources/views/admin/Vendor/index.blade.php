@@ -161,7 +161,7 @@
                 { data: 'DT_RowIndex', name: 'id', orderable: false, searchable: false },
                 { data: 'created_at' },
                 { data: 'name' },
-                { data: 'package', orderable: false, searchable: false },
+                { data: 'package' },
                 { data: 'email' },
                 { data: 'phone' },
                 { data: 'cnic_front', orderable: false, searchable: false },

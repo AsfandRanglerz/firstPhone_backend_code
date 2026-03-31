@@ -60,6 +60,10 @@ if (!Auth::guard('admin')->check()) {
     return datatables()->of($query)
         ->addIndexColumn()
 
+        ->filterColumn('created_at', function ($query, $keyword) {
+            $query->whereRaw("DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?", ["%{$keyword}%"]);
+        })
+
         ->editColumn('created_at', function ($user) {
             return $user->created_at
                 ? $user->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A')

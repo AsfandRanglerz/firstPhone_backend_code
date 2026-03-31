@@ -64,6 +64,16 @@ class VendorController extends Controller
     return datatables()->of($query)
         ->addIndexColumn()
 
+        ->filterColumn('created_at', function ($query, $keyword) {
+            $query->whereRaw("DATE_FORMAT(created_at, '%d %b %Y, %h:%i %p') LIKE ?", ["%{$keyword}%"]);
+        })
+
+        ->filterColumn('package', function ($query, $keyword) {
+            $query->whereHas('subscription.plan', function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%");
+            });
+        })
+
         // ✅ Date
         ->editColumn('created_at', function ($user) {
             return $user->created_at
