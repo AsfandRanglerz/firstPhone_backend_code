@@ -17,7 +17,7 @@
     <p>Your <strong>First Phone</strong> account has been permanently deleted from our system.</p>
 
     <p>If this was done by mistake, please reach out to us at 
-        <a href="mailto:support@firstphone.pk">support@firstphone.pk</a>.
+        <a href="mailto:info@firstphone.pk">info@firstphone.pk</a>.
     </p>
 
     <p>We appreciate your time and contribution to the First Phone platform.</p>

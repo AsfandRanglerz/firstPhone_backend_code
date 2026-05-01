@@ -27,7 +27,7 @@
         <p style="font-size: 14px; color: #555; line-height: 1.6;">
             Need help? Our team is always ready to assist you.  
             Contact us anytime at 
-            <a href="mailto:support@firstphone.pk" style="color: #021642; text-decoration: none; font-weight: bold;">support@firstphone.pk</a>.
+            <a href="mailto:info@firstphone.pk" style="color: #021642; text-decoration: none; font-weight: bold;">info@firstphone.pk</a>.
         </p>
 
         <!-- Footer -->

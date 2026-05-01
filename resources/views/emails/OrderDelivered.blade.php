@@ -31,7 +31,7 @@
 
     <p>
         If you have any feedback or need support, feel free to contact us at 
-        <a href="mailto:support@firstphone.pk">support@firstphone.pk</a>.
+        <a href="mailto:info@firstphone.pk">info@firstphone.pk</a>.
     </p>
 
     <p>Warm regards,<br>

@@ -28,8 +28,8 @@
     <p style="font-size: 14px; color: #555;">
         Please keep your login credentials secure. 
         If you have any questions or need assistance, contact us anytime at 
-        <a href="mailto:support@firstphone.pk" style="color: #007bff; text-decoration: none;">
-            support@firstphone.pk
+        <a href="mailto:info@firstphone.pk" style="color: #007bff; text-decoration: none;">
+            info@firstphone.pk
         </a>.
     </p>
 
