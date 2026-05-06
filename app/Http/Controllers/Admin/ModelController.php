@@ -10,6 +10,7 @@ use App\Models\MobileRequest;
 use App\Models\VendorMobile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ModelController extends Controller
 {
@@ -29,7 +30,13 @@ class ModelController extends Controller
     $request->validate([
         'brand_id' => 'required|exists:brands,id', // ✅ brand exist hona chahiye
         'name'     => 'required|array',
-        'name.*'   => 'required|string|distinct|unique:models,name',
+        'name.*'   => [
+        'required',
+        'string',
+        Rule::unique('models', 'name')->where(function ($query) use ($request) {
+            return $query->where('brand_id', $request->brand_id);
+        }),
+    ],
     ]);
 
     $createdModels = [];
@@ -51,11 +58,20 @@ class ModelController extends Controller
 
     public function update(Request $request, $id)
     {
+        $model = MobileModel::findOrFail($id);
         $request->validate([
-            'name' => 'required|string|unique:models,name,' . $id,
+             'name' => [
+            'required',
+            'string',
+            Rule::unique('models', 'name')
+                ->where(function ($query) use ($model) {
+                    return $query->where('brand_id', $model->brand_id);
+                })
+                ->ignore($id),
+        ],
         ]);
 
-        $model = MobileModel::findOrFail($id);
+        
         $model->update([
             'name' => $request->name,
         ]);
