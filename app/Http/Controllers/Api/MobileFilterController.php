@@ -392,7 +392,8 @@ class MobileFilterController extends Controller
             }
 
             if($request->filled('vendor_id')){
-                $query->where('vendor_mobiles.vendor_id',$request->vendor_id);
+                $query->where('vendor_mobiles.vendor_id',$request->vendor_id)
+                      ->where('vendors.status', '!=', 'deactivated');
             }
 
             $query->where('vendor_mobiles.status',0);
